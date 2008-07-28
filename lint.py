@@ -198,6 +198,7 @@ class HandleGlobal(Node):
         pass
 
 
+# Boring AST nodes are those that do not affect variable binding.
 class HandleBoring(Node):
 
     def assigned(self, var_set):
@@ -222,9 +223,19 @@ node_types = {
     "Global": HandleGlobal,
     }
 for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
-           "CallFunc", "Getattr", "Return", "List"):
+           "CallFunc", "Getattr", "Return", "Yield",
+           "List", "Tuple", "Dict",
+           "If", "While", "Break", "Continue", "Pass",
+           "Add", "Sub", "Mul", "Div", "Mod", "Power", "Compare",
+           "UnaryAdd", "UnarySub",
+           "And", "Or", "Not",
+           "Bitand", "Bitor", "Bitxor", "Invert", "LeftShift", "RightShift",
+           "Subscript", "Slice"):
     assert ty not in node_types
     node_types[ty] = HandleBoring
+
+# TODO: TryExcept, TryFinally, Lambda, With, For, Assert, comprehensions,
+# Backquote, Ellipsis, Exec, FloorDiv, Import, Raise
 
 
 def map_node(node):

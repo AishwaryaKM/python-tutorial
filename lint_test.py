@@ -64,11 +64,17 @@ def func(arg):
         tree = parse_statement("""
 global a
 global b, c
-def func(arg):
+if False:
     global d
+while False:
+    global e
+def func(arg):
+    global hidden1
+class C:
+    global hidden2
 """)
         self.assertEquals(lint.find_globals(tree),
-                          set(["a", "b", "c"]))
+                          set(["a", "b", "c", "d", "e"]))
         # Check that find_globals() corresponds to Python's scoping behaviour.
         eval(compiler.compile("""
 x = 1
@@ -215,6 +221,48 @@ def func(self, arg1, arg2):
     self._a = 2 # FAIL: SetAttr
     self.a
     self._a # FAIL: GetAttr
+""")
+
+        self.check(["True", "False", "func"], """
+# Control flow constructs are boring.
+while True:
+    break
+while False:
+    continue
+def func():
+    pass
+def func():
+    yield 100
+if True:
+    func()
+# These operators are boring.
+1 + 1
+1 - 1
+2 * 2
+2 / 2
+7 % 2
+2 ** 32
+0xff & 0xff
+0 | 0
+1 ^ 2
+~0
++1
+-1
+1 << 32
+100 >> 1
+True and False
+False or True
+not True
+"o" in "foo"
+"i" not in "team"
+[1,2][0]
+[1,2][:]
+# Comparisons can expose non-determinism, but let's ignore that for now.
+1 < 1
+# Built-in constructors.
+(1, 2)
+[1, 2]
+{"a": 1, "b": 2}
 """)
 
     @TODO_test
