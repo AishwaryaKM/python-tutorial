@@ -103,6 +103,17 @@ def func(self, arg1, arg2):
     self._a # FAIL: GetAttr
 """)
 
+        self.check(["object", "C"], """
+class C(object):
+    def method(self):
+        # Assigning to a variable disqualifies it from being a self var.
+        self = object()
+        self.a = 1 # FAIL: SetAttr
+        self._a = 2 # FAIL: SetAttr
+        self.a
+        self._a # FAIL: GetAttr
+""")
+
         self.check(["True", "False", "func"], """
 # Control flow constructs are boring.
 while True:

@@ -45,7 +45,8 @@ def check(tree):
             if isinstance(defn, ast.Function):
                 if defn.decorators is None:
                     binding = defn.code.environ.lookup(defn.argnames[0])
-                    binding.is_self_var = True
+                    if not binding.is_assigned:
+                        binding.is_self_var = True
     for node in find_all(tree, ast.AssAttr):
         if not lint.map_node(node.expr).is_self_var():
             log.append(("SetAttr", node))

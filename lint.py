@@ -25,6 +25,7 @@ class Binding(object):
         self.name = name
         self.is_global = is_global
         self.is_self_var = False
+        self.is_assigned = False
 
     def __repr__(self):
         return "<Binding 0x%x %r global=%s>" % (
@@ -48,8 +49,10 @@ class Environ(object):
                 self._global_vars[name] = Binding(name, is_global=True)
             return self._global_vars[name]
 
-    def record(self, node, name):
+    def record(self, node, name, assigns):
         node.binding = self._get(name)
+        if assigns:
+            node.binding.is_assigned = True
 
     def bind(self, name):
         binding = Binding(name, is_global=False)
@@ -94,7 +97,7 @@ class HandleName(Node):
         pass
 
     def annotate(self, env, cenv):
-        env.record(self._node, self._node.name)
+        env.record(self._node, self._node.name, assigns=False)
 
     def is_self_var(self):
         return self._node.binding.is_self_var
@@ -110,7 +113,7 @@ class HandleAssName(Node):
         pass
 
     def annotate(self, env, cenv):
-        env.record(self._node, self._node.name)
+        env.record(self._node, self._node.name, assigns=True)
 
 
 class HandleAugAssign(Node):
@@ -138,7 +141,7 @@ class HandleFunction(Node):
         pass
 
     def annotate(self, env, cenv):
-        env.record(self._node, self._node.name)
+        env.record(self._node, self._node.name, assigns=True)
         for default in self._node.defaults:
             map_node(default).annotate(env, cenv)
         global_vars = find_globals(self._node.code)
@@ -166,7 +169,7 @@ class HandleClass(Node):
         pass
 
     def annotate(self, env, cenv):
-        env.record(self._node, self._node.name)
+        env.record(self._node, self._node.name, assigns=True)
         for base in self._node.bases:
             map_node(base).annotate(env, cenv)
         # Classes have weird-assed scoping rules.
