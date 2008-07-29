@@ -262,43 +262,8 @@ def annotate(node):
     return set(global_vars.iterkeys())
 
 
-def find_all(node, node_type):
-    got = []
-
-    def recurse(node):
-        if isinstance(node, node_type):
-            got.append(node)
-        for subnode in node.getChildNodes():
-            recurse(subnode)
-
-    recurse(node)
-    return got
-
-
 def iter_nodes(node):
     yield node
     for subnode in node.getChildNodes():
         for result in iter_nodes(subnode):
             yield result
-
-
-def is_private_attr(name):
-    return name.startswith("_")
-
-
-def check(tree, vars):
-    log = []
-    for class_node in find_all(tree, ast.Class):
-        for defn in class_node.code.nodes:
-            if isinstance(defn, ast.Function):
-                if defn.decorators is None:
-                    binding = defn.code.environ.lookup(defn.argnames[0])
-                    binding.is_self_var = True
-    for node in find_all(tree, ast.AssAttr):
-        if not map_node(node.expr).is_self_var():
-            log.append(("SetAttr", node))
-    for node in find_all(tree, ast.Getattr):
-        if (not map_node(node.expr).is_self_var() and
-            is_private_attr(node.attrname)):
-            log.append(("GetAttr", node))
-    return log

@@ -29,13 +29,6 @@ def parse_statement(string):
     return tree.node
 
 
-def find_expected_errors(text):
-    for index, line in enumerate(text.split("\n")):
-        if "FAIL:" in line:
-            error = line.split("FAIL:", 1)[1]
-            yield error.strip(), index + 1
-
-
 def find_expected_bindings(source_text):
     for index, line in enumerate(source_text.split("\n")):
         line_vars = {}
@@ -52,15 +45,6 @@ def find_actual_bindings(tree):
     for node in lint.iter_nodes(tree):
         if hasattr(node, "binding"):
             yield (node.binding, node.lineno)
-
-
-# Intended to be used as a decorator.
-# This inverts the test.  We do not expect the test to pass.
-def TODO_test(method):
-    def wrapper(self):
-        self.assertRaises(AssertionError, lambda: method(self))
-    wrapper.__name__ = method.__name__
-    return wrapper
 
 
 class LintTest(unittest.TestCase):
@@ -298,126 +282,6 @@ def f(x=a, y=b, *args, **kwargs): # VAR: f:f, a:global1, b:global2
     print kwargs # VAR: kwargs:local4
 """
         self.match_up_bindings(source)
-
-    def test_error_comments(self):
-        # Expected errors can be embedded in comments for the purposes
-        # of this test suite.
-        code = """
-blah # FAIL: FooError
-blahh # FAIL: InsufficientCheeseError
-"""
-        self.assertEquals(list(find_expected_errors(code)),
-                          [("FooError", 2), ("InsufficientCheeseError", 3)])
-
-    def check(self, free_vars, code_text):
-        tree = parse_statement(code_text)
-        global_vars = lint.annotate(tree)
-        self.assertEquals(global_vars, set(free_vars))
-        logged = lint.check(tree, free_vars)
-        self.assertEquals(sorted([(error, node.lineno)
-                                  for error, node in logged]),
-                          sorted(find_expected_errors(code_text)))
-
-    def test_check(self):
-        self.check(["a"], """
-a.b = 1 # FAIL: SetAttr
-a._b = 1 # FAIL: SetAttr
-a.b
-a._b # FAIL: GetAttr
-""")
-
-        self.check(["object", "C", "C2"], """
-class C(object):
-    def method(self):
-        self.a = 1
-        self._a = 2
-        self.a
-        self._a
-
-class C2(object):
-    # self variables don't have to be called "self".
-    def method(badger):
-        badger.a = 1
-        badger._a = 2
-        badger.a
-        badger._a
-""")
-
-        self.check(["object", "C", "func"], """
-class C(object):
-    @staticmethod
-    def method(self):
-        # self is not really a self variable here, because of the decorator.
-        self.a = 1 # FAIL: SetAttr
-        self._a = 2 # FAIL: SetAttr
-        self.a
-        self._a # FAIL: GetAttr
-
-def func(self, arg1, arg2):
-    # self is not really a self variable here either.
-    self.a = 1 # FAIL: SetAttr
-    self._a = 2 # FAIL: SetAttr
-    self.a
-    self._a # FAIL: GetAttr
-""")
-
-        self.check(["True", "False", "func"], """
-# Control flow constructs are boring.
-while True:
-    break
-while False:
-    continue
-def func():
-    pass
-def func():
-    yield 100
-if True:
-    func()
-# These operators are boring.
-1 + 1
-1 - 1
-2 * 2
-2 / 2
-7 % 2
-2 ** 32
-0xff & 0xff
-0 | 0
-1 ^ 2
-~0
-+1
--1
-1 << 32
-100 >> 1
-True and False
-False or True
-not True
-"o" in "foo"
-"i" not in "team"
-[1,2][0]
-[1,2][:]
-# Comparisons can expose non-determinism, but let's ignore that for now.
-1 < 1
-# Built-in constructors.
-(1, 2)
-[1, 2]
-{"a": 1, "b": 2}
-# TODO: print should be rejected
-print "foo"
-print "foo",
-""")
-
-    @TODO_test
-    def test_check_2(self):
-        self.check(["C", "object"], """
-class C(object):
-    def method(self):
-        self._private
-    # This should be rejected because it allows the method's function to
-    # escape the class definition.
-    global f
-    f = method # FAIL: MethodEscapes
-    lst = [method] # FAIL: MethodEscapes
-""")
 
 
 if __name__ == "__main__":
