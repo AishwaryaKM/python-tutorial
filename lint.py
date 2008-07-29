@@ -176,6 +176,7 @@ class HandleClass(Node):
         # Assigned variables are not added to cenv.
         # Assigned variables' values default to those of their namesakes
         # in global (not enclosing) scope.
+        env = cenv
         for var in find_assigned(self._node.code):
             # Approximation: introduces a new binding, but its value
             # defaults to the value in the global scope.
