@@ -17,6 +17,9 @@
 # 02110-1301 USA.
 
 from compiler import ast
+import compiler
+import linecache
+import sys
 
 import lint
 
@@ -60,3 +63,18 @@ def check(tree):
     for node in find_all(tree, (ast.Print, ast.Printnl)):
         log.append(("Print", node))
     return log
+
+
+def main(args, stdout):
+    for filename in args:
+        tree = compiler.parseFile(filename)
+        lint.annotate(tree)
+        log = check(tree)
+        for error, node in log:
+            line = linecache.getline(filename, node.lineno).strip()
+            stdout.write("%s:%i: %s\n  %s\n"
+                         % (filename, node.lineno, error, line))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:], sys.stdout)
