@@ -23,6 +23,15 @@ import unittest
 import lint
 
 
+def assert_sets_equal(actual, expected):
+    if actual != expected:
+        missing = [x for x in expected if x not in actual]
+        excess = [x for x in actual if x not in expected]
+        raise AssertionError("Sets don't match:\nexpected: %r\nactual: %r\n\n"
+                             "missing: %r\nexcess: %r\n" %
+                             (expected, actual, missing, excess))
+
+
 def parse_statement(string):
     tree = compiler.parse(string)
     assert isinstance(tree, ast.Module)
@@ -58,9 +67,12 @@ c += foo3
 d = e = foo4
 def func(arg):
     f = foo5
+for element in [1, 2, 3]:
+    print element
 """)
-        self.assertEquals(lint.find_assigned(tree),
-                          set(["x", "y", "a", "b", "c", "d", "e", "func"]))
+        assert_sets_equal(
+            lint.find_assigned(tree),
+            set(["x", "y", "a", "b", "c", "d", "e", "func", "element"]))
 
     def test_find_globals(self):
         tree = parse_statement("""
@@ -70,13 +82,15 @@ if False:
     global d
 while False:
     global e
+for x in y:
+    global f
 def func(arg):
     global hidden1
 class C:
     global hidden2
 """)
         self.assertEquals(lint.find_globals(tree),
-                          set(["a", "b", "c", "d", "e"]))
+                          set(["a", "b", "c", "d", "e", "f"]))
         # Check that find_globals() corresponds to Python's scoping behaviour.
         eval(compiler.compile("""
 x = 1
@@ -280,6 +294,14 @@ def f(x=a, y=b, *args, **kwargs): # VAR: f:f, a:global1, b:global2
     print y # VAR: y:local2
     print args # VAR: args:local3
     print kwargs # VAR: kwargs:local4
+"""
+        self.match_up_bindings(source)
+
+        source = """
+x = 1 # VAR: x:globalx
+def f(): # VAR: f:f
+    for x in []: # VAR: x:localx
+        print x # VAR: x:localx
 """
         self.match_up_bindings(source)
 

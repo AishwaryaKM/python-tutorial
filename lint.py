@@ -22,6 +22,7 @@ from compiler import ast
 class Binding(object):
 
     def __init__(self, name, is_global):
+        assert type(name) == str, name
         self.name = name
         self.is_global = is_global
         self.is_self_var = False
@@ -232,7 +233,9 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "And", "Or", "Not",
            "Bitand", "Bitor", "Bitxor", "Invert", "LeftShift", "RightShift",
            "Subscript", "Slice",
-           "Print", "Printnl"):
+           "Print", "Printnl",
+           # "for" assigns but it contains an AssName node.
+           "For"):
     assert ty not in node_types
     node_types[ty] = HandleBoring
 
