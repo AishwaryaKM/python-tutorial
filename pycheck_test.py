@@ -171,6 +171,10 @@ not True
 (1, 2)
 [1, 2]
 {"a": 1, "b": 2}
+# Keyword arguments to functions.
+func(x=1, y=2)
+# Anything else.
+assert False
 """)
 
         self.check([], """
@@ -189,6 +193,13 @@ class C(object):
     global f
     f = method # FAIL: MethodEscapes
     lst = [method] # FAIL: MethodEscapes
+""")
+
+    @TODO_test
+    def test_check_3(self):
+        self.check(["Exception", "object"], """
+# Raise will need checking to make sure it doesn't leak authority
+raise Exception(object()) # FAIL: Raise
 """)
 
     def test_private_attributes_of_functions(self):

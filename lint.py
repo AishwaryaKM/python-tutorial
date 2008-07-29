@@ -234,6 +234,8 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "Bitand", "Bitor", "Bitxor", "Invert", "LeftShift", "RightShift",
            "Subscript", "Slice",
            "Print", "Printnl",
+           "Assert", "Raise",
+           "Keyword", # Keyword arguments to functions.
            # "for" assigns but it contains an AssName node.
            "For"):
     assert ty not in node_types
