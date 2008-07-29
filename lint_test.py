@@ -286,6 +286,19 @@ class C: # VAR: C:C
 """
         self.match_up_bindings(source)
 
+        source = """
+a = 1 # VAR: a:global1
+b = 2 # VAR: b:global2
+args = 1 # VAR: args:global3
+kwargs = 2 # VAR: kwargs:global4
+def f(x=a, y=b, *args, **kwargs): # VAR: f:f, a:global1, b:global2
+    print x # VAR: x:local1
+    print y # VAR: y:local2
+    print args # VAR: args:local3
+    print kwargs # VAR: kwargs:local4
+"""
+        self.match_up_bindings(source)
+
     def test_error_comments(self):
         # Expected errors can be embedded in comments for the purposes
         # of this test suite.

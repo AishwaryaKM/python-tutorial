@@ -142,7 +142,7 @@ class HandleFunction(Node):
     def annotate(self, env, cenv):
         env.record(self._node, self._node.name)
         for default in self._node.defaults:
-            map_node(default).annotate(env)
+            map_node(default).annotate(env, cenv)
         global_vars = find_globals(self._node.code)
         assigned_vars = find_assigned(self._node.code)
         for var in assigned_vars:
