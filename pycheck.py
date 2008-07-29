@@ -35,7 +35,10 @@ def find_all(node, node_type):
 
 
 def is_private_attr(name):
-    return name.startswith("_")
+    return (name.startswith("_") or
+            name.startswith("func_") or
+            name.startswith("im_") or
+            name.startswith("gi_"))
 
 
 def check(tree):

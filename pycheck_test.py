@@ -114,6 +114,23 @@ class C(object):
         self._a # FAIL: GetAttr
 """)
 
+        self.check(["func", "generator", "C", "object"], """
+# Some attributes are special even though they don't start with "_".
+def func():
+    pass
+func.func_globals # FAIL: GetAttr
+
+def generator():
+    yield 1
+generator().gi_frame # FAIL: GetAttr
+
+class C(object):
+    def method(self):
+        pass
+C().im_func # FAIL: GetAttr
+C().im_self # FAIL: GetAttr
+""")
+
         self.check(["True", "False", "func"], """
 # Control flow constructs are boring.
 while True:
@@ -173,6 +190,47 @@ class C(object):
     f = method # FAIL: MethodEscapes
     lst = [method] # FAIL: MethodEscapes
 """)
+
+    def test_private_attributes_of_functions(self):
+        def example_function():
+            pass
+        example_lambda = lambda: None
+
+        for obj in (example_function, example_lambda):
+            self.assertEquals(
+                [attr for attr in sorted(dir(obj))
+                 if not attr.startswith("_")],
+                ["func_closure", "func_code", "func_defaults",
+                 "func_dict", "func_doc", "func_globals", "func_name"])
+            for attr in dir(obj):
+                assert pycheck.is_private_attr(attr), attr
+
+    def test_private_attributes_of_bound_methods(self):
+        class C(object):
+            def method(self):
+                pass
+        example_method = C().method
+        self.assertEquals(
+            [attr for attr in sorted(dir(example_method))
+             if not attr.startswith("_")],
+            ["im_class", "im_func", "im_self"])
+        for attr in dir(example_method):
+            assert pycheck.is_private_attr(attr), attr
+
+    def test_private_attributes_of_generators(self):
+        def generator_func():
+            yield 1
+        generators = (generator_func(), (x + 1 for x in range(10)))
+
+        allowed_attrs = ["next", "send", "throw", "close"]
+        for obj in generators:
+            self.assertEquals(
+                [attr for attr in sorted(dir(obj))
+                 if not attr.startswith("_")],
+                sorted(["gi_frame", "gi_running"] + allowed_attrs))
+            for attr in dir(obj):
+                assert (pycheck.is_private_attr(attr) or
+                        attr in allowed_attrs), attr
 
 
 if __name__ == "__main__":
