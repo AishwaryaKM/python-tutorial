@@ -255,6 +255,17 @@ def f(): # VAR: f:func
 """
         self.match_up_bindings(source)
 
+        source = """
+def f(): # VAR: f:f
+    x = "x1" # VAR: x:x1
+    y = "y1" # VAR: y:y1
+    class C: # VAR: C:C
+        print x # VAR: x:x1
+        print y # VAR: y:y2
+        y = "y2" # VAR: y:y2
+"""
+        self.match_up_bindings(source)
+
     def test_error_comments(self):
         # Expected errors can be embedded in comments for the purposes
         # of this test suite.
@@ -357,6 +368,9 @@ not True
 (1, 2)
 [1, 2]
 {"a": 1, "b": 2}
+# TODO: print should be rejected
+print "foo"
+print "foo",
 """)
 
     @TODO_test

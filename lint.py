@@ -65,9 +65,6 @@ class Environ(object):
         del env[name]
         return Environ(env, self._bindings, self._global_vars)
 
-    def get_global_scope(self):
-        return Environ({}, self._bindings, self._global_vars)
-
 
 class Node(object):
 
@@ -179,9 +176,9 @@ class HandleClass(Node):
         # Assigned variables are not added to cenv.
         # Assigned variables' values default to those of their namesakes
         # in global (not enclosing) scope.
-        env = env.get_global_scope()
         for var in find_assigned(self._node.code):
-            # Approximation
+            # Approximation: introduces a new binding, but its value
+            # defaults to the value in the global scope.
             env = env.bind(var)
         map_node(self._node.code).annotate(env, cenv)
 
@@ -230,7 +227,8 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "UnaryAdd", "UnarySub",
            "And", "Or", "Not",
            "Bitand", "Bitor", "Bitxor", "Invert", "LeftShift", "RightShift",
-           "Subscript", "Slice"):
+           "Subscript", "Slice",
+           "Print", "Printnl"):
     assert ty not in node_types
     node_types[ty] = HandleBoring
 
