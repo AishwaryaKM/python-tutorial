@@ -180,6 +180,8 @@ class HandleClass(Node):
             # Approximation: introduces a new binding, but its value
             # defaults to the value in the global scope.
             env = env.bind(var)
+        for var in find_globals(self._node.code):
+            env = env.set_global(var)
         map_node(self._node.code).annotate(env, cenv)
 
 

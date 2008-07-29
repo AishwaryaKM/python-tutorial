@@ -266,6 +266,14 @@ def f(): # VAR: f:f
 """
         self.match_up_bindings(source)
 
+        source = """
+x = 1 # VAR: x:x
+class C: # VAR: C:C
+    global x
+    x = 2 # VAR: x:x
+"""
+        self.match_up_bindings(source)
+
     def test_error_comments(self):
         # Expected errors can be embedded in comments for the purposes
         # of this test suite.
