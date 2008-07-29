@@ -274,6 +274,13 @@ def find_all(node, node_type):
     return got
 
 
+def iter_nodes(node):
+    yield node
+    for subnode in node.getChildNodes():
+        for result in iter_nodes(subnode):
+            yield result
+
+
 def is_private_attr(name):
     return name.startswith("_")
 

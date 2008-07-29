@@ -36,6 +36,24 @@ def find_expected_errors(text):
             yield error.strip(), index + 1
 
 
+def find_expected_bindings(source_text):
+    for index, line in enumerate(source_text.split("\n")):
+        line_vars = {}
+        if "VAR:" in line:
+            bindings = line.split("VAR:", 1)[1]
+            for binding in bindings.split(","):
+                var_name, var_id = binding.strip().split(":", 1)
+                assert var_name not in line_vars
+                line_vars[var_name] = var_id
+        yield line_vars
+
+
+def find_actual_bindings(tree):
+    for node in lint.iter_nodes(tree):
+        if hasattr(node, "binding"):
+            yield (node.binding, node.lineno)
+
+
 # Intended to be used as a decorator.
 # This inverts the test.  We do not expect the test to pass.
 def TODO_test(method):
@@ -160,6 +178,82 @@ class C(object):
 """
         # TODO: k should be considered a FV
         self.assertEquals(free_vars(text), set(["object", "x", "C"]))
+
+    def check_isomorphism(self, relation):
+        mapping1 = {}
+        mapping2 = {}
+        for x, y in relation:
+            mapping1.setdefault(x, set()).add(y)
+            mapping2.setdefault(y, set()).add(x)
+        for x, ys in mapping1.iteritems():
+            assert len(ys) == 1, (x, ys)
+        for y, xs in mapping2.iteritems():
+            assert len(xs) == 1, (y, xs)
+
+    def match_up_bindings(self, source):
+        tree = parse_statement(source)
+        lint.annotate(tree)
+        got_vars = list(find_actual_bindings(tree))
+        expected = list(find_expected_bindings(source))
+        # Check that lines refer to the expected variable names.
+        expected_var_lines = [(var_name, line_index + 1)
+                              for line_index, var_map in enumerate(expected)
+                              for var_name in var_map.keys()]
+        actual_var_lines = [(binding.name, lineno)
+                            for binding, lineno in got_vars]
+        self.assertEquals(sorted(set(actual_var_lines)),
+                          sorted(set(expected_var_lines)))
+        # Check 1-1 mapping.
+        relation = []
+        for binding, lineno in got_vars:
+            var_id = expected[lineno - 1][binding.name]
+            relation.append((var_id, binding))
+        self.check_isomorphism(relation)
+
+    def test_scoping(self):
+        bad_source = """
+# Annotations wrongly say they refer to different variables.
+x = 1 # VAR: x:one_var
+x + x # VAR: x:another_var
+"""
+        self.assertRaises(AssertionError,
+                          lambda: self.match_up_bindings(bad_source))
+
+        bad_source = """
+# Annotations wrongly say they refer to the same variable.
+x = 1 # VAR: x:foo
+def f(x):
+    return x # VAR: x:foo
+"""
+        self.assertRaises(AssertionError,
+                          lambda: self.match_up_bindings(bad_source))
+
+        source = """
+x = 1 # VAR: x:global_x
+x + x # VAR: x:global_x
+y = 1 # VAR: y:global_y
+def f(x): # VAR: f:func
+    y # VAR: y:global_y
+    return x # VAR: x:local_x
+"""
+        self.match_up_bindings(source)
+
+        source = """
+g = 1 # VAR: g:1
+def f(): # VAR: f:func
+    global g
+    g = 2 # VAR: g:1
+"""
+        self.match_up_bindings(source)
+
+        source = """
+x = 1 # VAR: x:global_x
+y = 2 # VAR: y:global_y
+def f(): # VAR: f:func
+    x = 1 # VAR: x:local_x
+    return (x, y) # VAR: x:local_x, y:global_y
+"""
+        self.match_up_bindings(source)
 
     def test_error_comments(self):
         # Expected errors can be embedded in comments for the purposes
