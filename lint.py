@@ -33,9 +33,8 @@ class Binding(object):
 
 class Environ(object):
 
-    def __init__(self, env, bindings, global_vars):
+    def __init__(self, env, global_vars):
         self._env = env
-        self._bindings = bindings
         self._global_vars = global_vars
 
     def lookup(self, name):
@@ -56,14 +55,13 @@ class Environ(object):
         binding = Binding(name, is_global=False)
         env = self._env.copy()
         env[name] = binding
-        self._bindings.append(binding)
-        return Environ(env, self._bindings, self._global_vars)
+        return Environ(env, self._global_vars)
 
     def set_global(self, name):
         # Could add to global_vars too
         env = self._env.copy()
         del env[name]
-        return Environ(env, self._bindings, self._global_vars)
+        return Environ(env, self._global_vars)
 
 
 class Node(object):
@@ -255,9 +253,8 @@ def find_globals(node):
 
 
 def annotate(node):
-    bindings = []
     global_vars = {}
-    env = Environ({}, bindings, global_vars)
+    env = Environ({}, global_vars)
     map_node(node).annotate(env, env)
     return set(global_vars.iterkeys())
 

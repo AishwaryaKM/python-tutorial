@@ -38,7 +38,7 @@ def is_private_attr(name):
     return name.startswith("_")
 
 
-def check(tree, vars):
+def check(tree):
     log = []
     for class_node in find_all(tree, ast.Class):
         for defn in class_node.code.nodes:

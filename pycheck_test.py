@@ -55,7 +55,7 @@ blahh # FAIL: InsufficientCheeseError
         tree = parse_statement(code_text)
         global_vars = lint.annotate(tree)
         self.assertEquals(global_vars, set(free_vars))
-        logged = pycheck.check(tree, free_vars)
+        logged = pycheck.check(tree)
         self.assertEquals(sorted([(error, node.lineno)
                                   for error, node in logged]),
                           sorted(find_expected_errors(code_text)))
