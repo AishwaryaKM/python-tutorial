@@ -54,4 +54,6 @@ def check(tree):
         if (not lint.map_node(node.expr).is_self_var() and
             is_private_attr(node.attrname)):
             log.append(("GetAttr", node))
+    for node in find_all(tree, (ast.Print, ast.Printnl)):
+        log.append(("Print", node))
     return log

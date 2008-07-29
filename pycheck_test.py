@@ -154,9 +154,11 @@ not True
 (1, 2)
 [1, 2]
 {"a": 1, "b": 2}
-# TODO: print should be rejected
-print "foo"
-print "foo",
+""")
+
+        self.check([], """
+print "foo" # FAIL: Print
+print "foo", # FAIL: Print
 """)
 
     @TODO_test
