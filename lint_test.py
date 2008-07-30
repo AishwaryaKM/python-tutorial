@@ -85,6 +85,17 @@ from other_module import *
             lint.find_assigned(tree),
             set(["foo1", "foo2", "foo3", "a1", "a2", "a3", "a4",
                  "name1", "name2", "name3", "name4"]))
+        tree = parse_statement("""
+# Assigned variables in list comprehensions escape, for no good reason
+# that I can see.  There's a good reason for the assigned variable to
+# escape from a "for" loop, but not for a list comprehension.
+# Why can't the variable be bound, as with a lambda?
+[x+1 for x, y in enumerate(range(100))]
+[None for z1 in range(10)
+      for z2 in range(10) if z1 % 2 == 0]
+""")
+        assert_sets_equal(lint.find_assigned(tree),
+                          set(["x", "y", "z1", "z2"]))
 
     def test_find_globals(self):
         tree = parse_statement("""
@@ -322,6 +333,16 @@ sys = 1 # VAR: sys:globalvar
 def f(): # VAR: f:f
     import sys # TODO: this reference should be tracked
     sys.stdout.write("hello") # VAR: sys:localvar
+"""
+        self.match_up_bindings(source)
+
+        source = """
+x = 1 # VAR: x:globalx
+def f(): # VAR: f:f
+    x = 2 # VAR: x:localx
+    [x + 1 # VAR: x:localx
+       for x in (1,2,3)] # VAR: x:localx
+    return x # VAR: x:localx
 """
         self.match_up_bindings(source)
 

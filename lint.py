@@ -277,7 +277,8 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "Keyword", # Keyword arguments to functions.
            "Module", # Provides a place to put the top-level docstring.
            # "for" assigns but it contains an AssName node.
-           "For"):
+           # The same applies to list comprehensions.
+           "For", "ListComp", "ListCompFor", "ListCompIf"):
     assert ty not in node_types
     node_types[ty] = HandleBoring
 
