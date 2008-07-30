@@ -70,6 +70,12 @@ for element in [1, 2, 3]:
         assert_sets_equal(
             lint.find_assigned(tree),
             set(["x", "y", "a", "b", "c", "d", "e", "func", "element"]))
+
+        tree = parse_statement("""
+lambda x: x + 1
+""")
+        assert_sets_equal(lint.find_assigned(tree), set())
+
         tree = parse_statement("""
 import foo1
 import foo2.bar
@@ -85,6 +91,7 @@ from other_module import *
             lint.find_assigned(tree),
             set(["foo1", "foo2", "foo3", "a1", "a2", "a3", "a4",
                  "name1", "name2", "name3", "name4"]))
+
         tree = parse_statement("""
 # Assigned variables in list comprehensions escape, for no good reason
 # that I can see.  There's a good reason for the assigned variable to
@@ -188,6 +195,13 @@ d = 2
 """
         self.assertEquals(free_vars(text),
                           set(["f", "a", "b", "c", "d", "func"]))
+
+        text = """
+lambda x: x
+lambda x: freevar
+"""
+        self.assertEquals(free_vars(text), set(["freevar"]))
+
         text = """
 class C(object):
     x = 0
@@ -304,6 +318,8 @@ class C: # VAR: C:C
         print x # VAR: x:globalx
     class D: # VAR: D:D
         print x # VAR: x:globalx
+    f = ( # VAR: f:f
+      lambda: x) # VAR: x:globalx
 """
         self.match_up_bindings(source)
 
@@ -336,6 +352,7 @@ def f(): # VAR: f:f
 """
         self.match_up_bindings(source)
 
+        # List comprehensions
         source = """
 x = 1 # VAR: x:globalx
 def f(): # VAR: f:f
@@ -343,6 +360,19 @@ def f(): # VAR: f:f
     [x + 1 # VAR: x:localx
        for x in (1,2,3)] # VAR: x:localx
     return x # VAR: x:localx
+
+def f(): # VAR: f:f
+    global x
+    [x + 1 # VAR: x:globalx
+       for x in (1,2,3)] # VAR: x:globalx
+"""
+        self.match_up_bindings(source)
+
+        source = """
+x = 1 # VAR: x:globalx
+(lambda x:
+   lambda y:
+     x) # VAR: x:localx
 """
         self.match_up_bindings(source)
 

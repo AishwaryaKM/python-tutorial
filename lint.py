@@ -131,6 +131,40 @@ class HandleAugAssign(Node):
             map_node(node).annotate(env, cenv)
 
 
+def annotate_function(node, env, cenv):
+    for default in node.defaults:
+        map_node(default).annotate(env, cenv)
+    global_vars = find_globals(node.code)
+    assigned_vars = find_assigned(node.code)
+    for var in assigned_vars:
+        cenv = cenv.bind(var)
+    for var in global_vars:
+        cenv = cenv.set_global(var)
+    # TODO: pattern args
+    for var in node.argnames:
+        assert var not in global_vars
+        cenv = cenv.bind(var)
+    node.code.environ = cenv
+    map_node(node.code).annotate(cenv, cenv)
+
+
+class HandleLambda(Node):
+
+    # Even though lambdas can only contain expressions, not
+    # statements, they can contain assignments, because list
+    # comprehensions contain assignments rather than bindings.
+
+    def assigned(self, var_set):
+        # Function starts new scope, so assignments in body are hidden
+        pass
+
+    def find_globals(self, var_set):
+        assert find_globals(self._node.code) == set()
+
+    def annotate(self, env, cenv):
+        annotate_function(self._node, env, cenv)
+
+
 class HandleFunction(Node):
 
     def assigned(self, var_set):
@@ -143,20 +177,7 @@ class HandleFunction(Node):
 
     def annotate(self, env, cenv):
         env.record(self._node, self._node.name, assigns=True)
-        for default in self._node.defaults:
-            map_node(default).annotate(env, cenv)
-        global_vars = find_globals(self._node.code)
-        assigned_vars = find_assigned(self._node.code)
-        for var in assigned_vars:
-            cenv = cenv.bind(var)
-        for var in global_vars:
-            cenv = cenv.set_global(var)
-        # TODO: pattern args
-        for var in self._node.argnames:
-            assert var not in global_vars
-            cenv = cenv.bind(var)
-        self._node.code.environ = cenv
-        map_node(self._node.code).annotate(cenv, cenv)
+        annotate_function(self._node, env, cenv)
 
 
 class HandleClass(Node):
@@ -257,6 +278,7 @@ node_types = {
     "Name": HandleName,
     "AssName": HandleAssName,
     "AugAssign": HandleAugAssign,
+    "Lambda": HandleLambda,
     "Function": HandleFunction,
     "Class": HandleClass,
     "Global": HandleGlobal,
