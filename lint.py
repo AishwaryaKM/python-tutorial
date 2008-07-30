@@ -200,6 +200,43 @@ class HandleGlobal(Node):
         pass
 
 
+class HandleImport(Node):
+
+    def assigned(self, var_set):
+        for module_path, as_name in self._node.names:
+            if as_name is None:
+                components = module_path.split(".")
+                var_set.add(components[0])
+            else:
+                var_set.add(as_name)
+
+    def find_globals(self, var_set):
+        assert self._node.getChildNodes() == ()
+
+    def annotate(self, env, cenv):
+        # TODO
+        pass
+
+
+class HandleFromImport(Node):
+
+    def assigned(self, var_set):
+        for attr_name, as_name in self._node.names:
+            # Cannot track assignments when "from X import *" is used.
+            if attr_name != "*":
+                if as_name is None:
+                    var_set.add(attr_name)
+                else:
+                    var_set.add(as_name)
+
+    def find_globals(self, var_set):
+        assert self._node.getChildNodes() == ()
+
+    def annotate(self, env, cenv):
+        # TODO
+        pass
+
+
 # Boring AST nodes are those that do not affect variable binding.
 class HandleBoring(Node):
 
@@ -223,6 +260,8 @@ node_types = {
     "Function": HandleFunction,
     "Class": HandleClass,
     "Global": HandleGlobal,
+    "Import": HandleImport,
+    "From": HandleFromImport,
     }
 for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "CallFunc", "Getattr", "Return", "Yield",
@@ -236,6 +275,7 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "Print", "Printnl",
            "Assert", "Raise",
            "Keyword", # Keyword arguments to functions.
+           "Module", # Provides a place to put the top-level docstring.
            # "for" assigns but it contains an AssName node.
            "For"):
     assert ty not in node_types

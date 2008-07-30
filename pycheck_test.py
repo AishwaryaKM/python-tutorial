@@ -182,6 +182,15 @@ print "foo" # FAIL: Print
 print "foo", # FAIL: Print
 """)
 
+        self.check([], """
+# Reject all imports for the time being.
+import os # FAIL: Import
+from os import unlink # FAIL: Import
+# Blanket imports should definitely be prevented because they hinder
+# analysability.
+from sys import * # FAIL: Import
+""")
+
     @TODO_test
     def test_check_2(self):
         self.check(["C", "object"], """

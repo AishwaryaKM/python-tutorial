@@ -32,10 +32,7 @@ def assert_sets_equal(actual, expected):
                              (expected, actual, missing, excess))
 
 
-def parse_statement(string):
-    tree = compiler.parse(string)
-    assert isinstance(tree, ast.Module)
-    return tree.node
+parse_statement = compiler.parse
 
 
 def find_expected_bindings(source_text):
@@ -73,6 +70,21 @@ for element in [1, 2, 3]:
         assert_sets_equal(
             lint.find_assigned(tree),
             set(["x", "y", "a", "b", "c", "d", "e", "func", "element"]))
+        tree = parse_statement("""
+import foo1
+import foo2.bar
+import bar.baz as foo3
+# These can also be combined into a single import statement.
+import blah1 as a1, blah2 as a2, a3.bar, a4
+
+from bar.baz import name1, name2
+from bar.baz import qux as name3, quux as name4
+from other_module import *
+""")
+        assert_sets_equal(
+            lint.find_assigned(tree),
+            set(["foo1", "foo2", "foo3", "a1", "a2", "a3", "a4",
+                 "name1", "name2", "name3", "name4"]))
 
     def test_find_globals(self):
         tree = parse_statement("""
@@ -302,6 +314,14 @@ x = 1 # VAR: x:globalx
 def f(): # VAR: f:f
     for x in []: # VAR: x:localx
         print x # VAR: x:localx
+"""
+        self.match_up_bindings(source)
+
+        source = """
+sys = 1 # VAR: sys:globalvar
+def f(): # VAR: f:f
+    import sys # TODO: this reference should be tracked
+    sys.stdout.write("hello") # VAR: sys:localvar
 """
         self.match_up_bindings(source)
 
