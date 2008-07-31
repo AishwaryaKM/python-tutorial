@@ -97,12 +97,24 @@ from other_module import *
 # that I can see.  There's a good reason for the assigned variable to
 # escape from a "for" loop, but not for a list comprehension.
 # Why can't the variable be bound, as with a lambda?
+# The Python Reference Manual says "this behavior is deprecated, and
+# relying on it will not work once this bug is fixed in a future release".
+# (http://docs.python.org/ref/lists.html)
 [x+1 for x, y in enumerate(range(100))]
 [None for z1 in range(10)
       for z2 in range(10) if z1 % 2 == 0]
 """)
         assert_sets_equal(lint.find_assigned(tree),
                           set(["x", "y", "z1", "z2"]))
+
+        # Generators have different binding rules: they introduce new
+        # scopes.
+        tree = parse_statement("""
+list(x+1 for x, y in enumerate(range(100)))
+list(None for z1 in range(10)
+          for z2 in range(10) if z1 % 2 == 0)
+""")
+        assert_sets_equal(lint.find_assigned(tree), set())
 
     def test_find_globals(self):
         tree = parse_statement("""
@@ -201,6 +213,12 @@ lambda x: x
 lambda x: freevar
 """
         self.assertEquals(free_vars(text), set(["freevar"]))
+
+        text = """
+[x for x in (1,2)] # Variable escapes
+(y for y in (1,2)) # Variable does not escape
+"""
+        self.assertEquals(free_vars(text), set(["x"]))
 
         text = """
 class C(object):
@@ -365,6 +383,13 @@ def f(): # VAR: f:f
     global x
     [x + 1 # VAR: x:globalx
        for x in (1,2,3)] # VAR: x:globalx
+"""
+        self.match_up_bindings(source)
+
+        source = """
+x = 1 # VAR: x:globalx
+(x + 1 # VAR: x:bound
+   for x in (1,2,3)) # VAR: x:bound
 """
         self.match_up_bindings(source)
 

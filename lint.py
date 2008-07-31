@@ -209,6 +209,78 @@ class HandleClass(Node):
         map_node(self._node.code).annotate(env, cenv)
 
 
+# Helper wrapper that introduces a new scope.
+class HandleNewScopeExpr(Node):
+
+    def __init__(self, node_handler):
+        self._node_handler = node_handler
+
+    def assigned(self, var_set):
+        # Assigned variables do not escape the new scope.
+        pass
+
+    def find_globals(self, var_set):
+        assert find_globals_from_handler(self._node_handler) == set()
+
+    def annotate(self, env, cenv):
+        new_env = cenv
+        for var in find_assigned_from_handler(self._node_handler):
+            new_env = new_env.bind(var)
+        self._node_handler.annotate(new_env, new_env)
+
+
+# Helper wrapper.  TODO: merge with HandleBoring
+class HandleCompoundExpr(Node):
+
+    def __init__(self, node_handlers):
+        self._node_handlers = node_handlers
+
+    def assigned(self, var_set):
+        for node_handler in self._node_handlers:
+            node_handler.assigned(var_set)
+
+    def find_globals(self, var_set):
+        for node_handler in self._node_handlers:
+            node_handler.find_globals(var_set)
+
+    def annotate(self, env, cenv):
+        for node_handler in self._node_handlers:
+            node_handler.annotate(env, cenv)
+
+
+# Generators have odd scoping behaviour.  Unlike list comprehensions
+# and "for" loops, it introduces new scopes.  Unlike "lambda", it does
+# not necessarily bind a variable; it assigns to lvalues, which
+# introduces a binding as per the normal rules *if* the lvalue is a
+# variable.  Consider this generator expression:
+#   (E for x in sequence1
+#      if f(x)
+#      for y in sequence2)
+# This is logically structured like this:
+#   iterate_over sequence1 {assign x:
+#       if f(x):
+#           iterate_over sequence2 {assign y:
+#               yield E}}
+# where {...} indicates a new scope, and "iterate_over Y assign X" is
+# a different way of saying "for X in Y".  Note that the scopes are
+# not syntactically contiguous in the original: E has to be moved from
+# the start to the end to keep the scope together.  This is why we
+# rejig the contents of the generator using some simpler node wrappers
+# here.
+def HandleGenExprInner(node):
+    handler = map_node(node.expr)
+    for qual in reversed(node.quals):
+        assert isinstance(qual, ast.GenExprFor)
+        for if_qual in qual.ifs:
+            assert isinstance(if_qual, ast.GenExprIf)
+            handler = HandleCompoundExpr([handler, map_node(if_qual.test)])
+        handler = HandleCompoundExpr([handler, map_node(qual.assign)])
+        handler = HandleNewScopeExpr(handler)
+        handler = HandleCompoundExpr([handler, map_node(qual.iter)])
+        # What is qual.is_outmost for?
+    return handler
+
+
 class HandleGlobal(Node):
 
     def assigned(self, var_set):
@@ -281,6 +353,7 @@ node_types = {
     "Lambda": HandleLambda,
     "Function": HandleFunction,
     "Class": HandleClass,
+    "GenExprInner": HandleGenExprInner,
     "Global": HandleGlobal,
     "Import": HandleImport,
     "From": HandleFromImport,
@@ -300,7 +373,10 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "Module", # Provides a place to put the top-level docstring.
            # "for" assigns but it contains an AssName node.
            # The same applies to list comprehensions.
-           "For", "ListComp", "ListCompFor", "ListCompIf"):
+           "For", "ListComp", "ListCompFor", "ListCompIf",
+           # This is a wrapper node that does nothing.
+           # GenExprInner is the interesting one, and looks like ListComp.
+           "GenExpr"):
     assert ty not in node_types
     node_types[ty] = HandleBoring
 
@@ -312,15 +388,21 @@ def map_node(node):
     return node_types[node.__class__.__name__](node)
 
 
-def find_assigned(node):
+def find_assigned_from_handler(handler):
     var_set = set()
-    map_node(node).assigned(var_set)
+    handler.assigned(var_set)
     return var_set
 
-def find_globals(node):
+def find_globals_from_handler(handler):
     var_set = set()
-    map_node(node).find_globals(var_set)
+    handler.find_globals(var_set)
     return var_set
+
+def find_assigned(node):
+    return find_assigned_from_handler(map_node(node))
+
+def find_globals(node):
+    return find_globals_from_handler(map_node(node))
 
 
 def annotate(node):

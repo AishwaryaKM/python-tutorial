@@ -191,6 +191,36 @@ from os import unlink # FAIL: Import
 from sys import * # FAIL: Import
 """)
 
+        self.check(["C", "object", "list"], """
+class C(object):
+    def method1(self):
+        # This list comprehension has the side effect of assigning to self.
+        [self for self in (1,2)]
+        self._foo = 1 # FAIL: SetAttr
+    def method2(self):
+        # But the generator is fine.
+        list(self for self in (1,2))
+        self._foo = 1
+    def method3(self):
+        # Assignments can escape from some parts of generators.
+        list(x for x in [self for self in (1,2)])
+        self._foo = 1 # FAIL: SetAttr
+    def method4(self):
+        # But not from other parts of generators.
+        list(x for x in (1,2)
+               for y in [self for self in (1,2)])
+        self._foo = 1
+""")
+
+        self.check(["a", "list"], """
+# These statements have the same side effect:
+a.foo = 2 # FAIL: SetAttr
+[1 for a.foo in [2]] # FAIL: SetAttr
+list(1 for a.foo in [2]) # FAIL: SetAttr
+for a.foo in [2]: # FAIL: SetAttr
+    pass
+""")
+
     @TODO_test
     def test_check_2(self):
         self.check(["C", "object"], """
