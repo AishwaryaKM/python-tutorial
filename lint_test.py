@@ -254,7 +254,7 @@ class C(object):
                               for var_name in var_map.keys()]
         actual_var_lines = [(binding.name, lineno)
                             for binding, lineno in got_vars]
-        self.assertEquals(sorted(set(actual_var_lines)),
+        assert_sets_equal(sorted(set(actual_var_lines)),
                           sorted(set(expected_var_lines)))
         # Check 1-1 mapping.
         relation = []
@@ -331,6 +331,7 @@ class C: # VAR: C:C
 x = 1 # VAR: x:globalx
 class C: # VAR: C:C
     x = 2 # VAR: x:classx
+    y = 99 # VAR: y:classy
     print x # VAR: x:classx
     def f(): # VAR: f:f
         print x # VAR: x:globalx
@@ -338,6 +339,8 @@ class C: # VAR: C:C
         print x # VAR: x:globalx
     f = ( # VAR: f:f
       lambda: x) # VAR: x:globalx
+    print [x for y in ()] # VAR: x:classx, y:classy
+    print (x for y in ()) # VAR: x:globalx, y:localy
 """
         self.match_up_bindings(source)
 
