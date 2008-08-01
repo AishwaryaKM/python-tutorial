@@ -33,6 +33,7 @@ class Binding(object):
             id(self), self.name, self.is_global)
 
 
+# An environment is a mapping from variable names to bindings.
 class Environ(object):
 
     def __init__(self, env, global_vars):
@@ -68,6 +69,21 @@ class Environ(object):
         return Environ(env, self._global_vars)
 
 
+class Scope(object):
+
+    # A Python scope consists of two environments.  Usually the
+    # environments are the same, but they are different for class
+    # scopes.
+    # local_env is used for variable references and assignments.
+    # next_env is what any new, nested scopes are based on.
+    def __init__(self, local_env, next_env):
+        self.local_env = local_env
+        self.next_env = next_env
+
+def make_normal_scope(env):
+    return Scope(env, env)
+
+
 class Node(object):
 
     def __init__(self, node):
@@ -79,10 +95,7 @@ class Node(object):
     def find_globals(self, var_set):
         raise NotImplementedError()
 
-    # env is the environment that nodes get when evaluated,
-    # but cenv is the environment that closures capture.
-    # The two are only different in class scope.
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         raise NotImplementedError()
 
     def is_self_var(self):
@@ -97,8 +110,8 @@ class HandleName(Node):
     def find_globals(self, var_set):
         pass
 
-    def annotate(self, env, cenv):
-        env.record(self._node, self._node.name, assigns=False)
+    def annotate(self, scope):
+        scope.local_env.record(self._node, self._node.name, assigns=False)
 
     def is_self_var(self):
         return self._node.binding.is_self_var
@@ -113,8 +126,8 @@ class HandleAssName(Node):
     def find_globals(self, var_set):
         pass
 
-    def annotate(self, env, cenv):
-        env.record(self._node, self._node.name, assigns=True)
+    def annotate(self, scope):
+        scope.local_env.record(self._node, self._node.name, assigns=True)
 
 
 class HandleAugAssign(Node):
@@ -126,26 +139,27 @@ class HandleAugAssign(Node):
     def find_globals(self, var_set):
         pass
 
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         for node in self._node.getChildNodes():
-            map_node(node).annotate(env, cenv)
+            map_node(node).annotate(scope)
 
 
-def annotate_function(node, env, cenv):
+def annotate_function(node, scope):
     for default in node.defaults:
-        map_node(default).annotate(env, cenv)
+        map_node(default).annotate(scope)
     global_vars = find_globals(node.code)
     assigned_vars = find_assigned(node.code)
+    new_env = scope.next_env
     for var in assigned_vars:
-        cenv = cenv.bind(var)
+        new_env = new_env.bind(var)
     for var in global_vars:
-        cenv = cenv.set_global(var)
+        new_env = new_env.set_global(var)
     # TODO: pattern args
     for var in node.argnames:
         assert var not in global_vars
-        cenv = cenv.bind(var)
-    node.code.environ = cenv
-    map_node(node.code).annotate(cenv, cenv)
+        new_env = new_env.bind(var)
+    node.code.environ = new_env
+    map_node(node.code).annotate(make_normal_scope(new_env))
 
 
 class HandleLambda(Node):
@@ -161,8 +175,8 @@ class HandleLambda(Node):
     def find_globals(self, var_set):
         assert find_globals(self._node.code) == set()
 
-    def annotate(self, env, cenv):
-        annotate_function(self._node, env, cenv)
+    def annotate(self, scope):
+        annotate_function(self._node, scope)
 
 
 class HandleFunction(Node):
@@ -175,9 +189,9 @@ class HandleFunction(Node):
         # Function starts new scope, so global decls in body are hidden
         pass
 
-    def annotate(self, env, cenv):
-        env.record(self._node, self._node.name, assigns=True)
-        annotate_function(self._node, env, cenv)
+    def annotate(self, scope):
+        scope.local_env.record(self._node, self._node.name, assigns=True)
+        annotate_function(self._node, scope)
 
 
 class HandleClass(Node):
@@ -190,23 +204,24 @@ class HandleClass(Node):
         # No recurse
         pass
 
-    def annotate(self, env, cenv):
-        env.record(self._node, self._node.name, assigns=True)
+    def annotate(self, scope):
+        scope.local_env.record(self._node, self._node.name, assigns=True)
         for base in self._node.bases:
-            map_node(base).annotate(env, cenv)
+            map_node(base).annotate(scope)
         # Classes have weird-assed scoping rules.
         # Classes do not behave according to lexical scope!
-        # Assigned variables are not added to cenv.
+        # Assigned variables are not inherited by any nested scopes
+        # that appear within the class scope.
         # Assigned variables' values default to those of their namesakes
         # in global (not enclosing) scope.
-        env = cenv
+        new_env = scope.next_env
         for var in find_assigned(self._node.code):
             # Approximation: introduces a new binding, but its value
             # defaults to the value in the global scope.
-            env = env.bind(var)
+            new_env = new_env.bind(var)
         for var in find_globals(self._node.code):
-            env = env.set_global(var)
-        map_node(self._node.code).annotate(env, cenv)
+            new_env = new_env.set_global(var)
+        map_node(self._node.code).annotate(Scope(new_env, scope.next_env))
 
 
 # Helper wrapper that introduces a new scope.
@@ -222,11 +237,11 @@ class HandleNewScopeExpr(Node):
     def find_globals(self, var_set):
         assert find_globals_from_handler(self._node_handler) == set()
 
-    def annotate(self, env, cenv):
-        new_env = cenv
+    def annotate(self, scope):
+        new_env = scope.next_env
         for var in find_assigned_from_handler(self._node_handler):
             new_env = new_env.bind(var)
-        self._node_handler.annotate(new_env, new_env)
+        self._node_handler.annotate(make_normal_scope(new_env))
 
 
 # Helper wrapper.  TODO: merge with HandleBoring
@@ -243,9 +258,9 @@ class HandleCompoundExpr(Node):
         for node_handler in self._node_handlers:
             node_handler.find_globals(var_set)
 
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         for node_handler in self._node_handlers:
-            node_handler.annotate(env, cenv)
+            node_handler.annotate(scope)
 
 
 # Generators have odd scoping behaviour.  Unlike list comprehensions
@@ -289,7 +304,7 @@ class HandleGlobal(Node):
     def find_globals(self, var_set):
         var_set.update(self._node.names)
 
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         pass
 
 
@@ -306,7 +321,7 @@ class HandleImport(Node):
     def find_globals(self, var_set):
         assert self._node.getChildNodes() == ()
 
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         # TODO
         pass
 
@@ -325,7 +340,7 @@ class HandleFromImport(Node):
     def find_globals(self, var_set):
         assert self._node.getChildNodes() == ()
 
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         # TODO
         pass
 
@@ -341,9 +356,9 @@ class HandleBoring(Node):
         for node in self._node.getChildNodes():
             map_node(node).find_globals(var_set)
 
-    def annotate(self, env, cenv):
+    def annotate(self, scope):
         for node in self._node.getChildNodes():
-            map_node(node).annotate(env, cenv)
+            map_node(node).annotate(scope)
 
 
 node_types = {
@@ -408,7 +423,7 @@ def find_globals(node):
 def annotate(node):
     global_vars = {}
     env = Environ({}, global_vars)
-    map_node(node).annotate(env, env)
+    map_node(node).annotate(make_normal_scope(env))
     return set(global_vars.iterkeys())
 
 
