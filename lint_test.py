@@ -65,10 +65,15 @@ def func(arg):
     f = foo5
 for element in [1, 2, 3]:
     print element
+
+try:
+    pass
+except Exception, exn:
+    pass
 """)
         assert_sets_equal(
             lint.find_assigned(tree),
-            set(["x", "y", "a", "b", "c", "d", "e", "func", "element"]))
+            set(["x", "y", "a", "b", "c", "d", "e", "func", "element", "exn"]))
 
         tree = parse_statement("""
 lambda x: x + 1
@@ -400,6 +405,40 @@ x = 1 # VAR: x:globalx
 (lambda x:
    lambda y:
      x) # VAR: x:localx
+"""
+        self.match_up_bindings(source)
+
+        source = """
+exn = 1 # VAR: exn:exn
+try:
+    f() # VAR: f:f
+except Exception, exn: # VAR: Exception:Exception, exn:exn
+    print exn # VAR: exn:exn
+
+try:
+    f() # VAR: f:f
+except Exception: # VAR: Exception:Exception
+    pass
+
+try:
+    f() # VAR: f:f
+except:
+    print "got exception"
+
+def func(): # VAR: func:func
+    try:
+        print exn # VAR: exn:localexn
+    except Exception, exn: # VAR: Exception:Exception, exn:localexn
+        print exn # VAR: exn:localexn
+
+try:
+    print x # VAR: x:x
+except Exception, x: # VAR: Exception:Exception, x:x
+    print x # VAR: x:x
+else:
+    print x # VAR: x:x
+finally:
+    print x # VAR: x:x
 """
         self.match_up_bindings(source)
 

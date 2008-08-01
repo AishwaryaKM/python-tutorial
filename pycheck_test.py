@@ -131,7 +131,7 @@ C().im_func # FAIL: GetAttr
 C().im_self # FAIL: GetAttr
 """)
 
-        self.check(["True", "False", "func"], """
+        self.check(["True", "False", "func", "Exception", "exn"], """
 # Control flow constructs are boring.
 while True:
     break
@@ -143,6 +143,27 @@ def func():
     yield 100
 if True:
     func()
+
+try:
+    func("try")
+finally:
+    func("done")
+
+try:
+    func("try")
+except Exception, exn:
+    func(exn)
+
+try:
+    func("try")
+except Exception:
+    func(exn)
+
+try:
+    func("try")
+except:
+    func("failed")
+
 # These operators are boring.
 1 + 1
 1 - 1
