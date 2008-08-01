@@ -349,6 +349,7 @@ class C: # VAR: C:C
         self.match_up_bindings(source)
 
         source = """
+# Test handling of default arguments and *args/**kwargs
 a = 1 # VAR: a:global1
 b = 2 # VAR: b:global2
 args = 1 # VAR: args:global3
@@ -358,6 +359,19 @@ def f(x=a, y=b, *args, **kwargs): # VAR: f:f, a:global1, b:global2
     print y # VAR: y:local2
     print args # VAR: args:local3
     print kwargs # VAR: kwargs:local4
+"""
+        self.match_up_bindings(source)
+
+        source = """
+# Test handling of tuple-pattern arguments
+x = 1 # VAR: x:global1
+y = 1 # VAR: y:global2
+def f((x, (y, z))): # VAR: f:f
+    print x # VAR: x:local1
+    print y # VAR: y:local2
+    print z # VAR: z:local3
+f = (lambda (x, (y, z)): # VAR: f:f
+       x + y + z) # VAR: x:local4, y:local5, z:local6
 """
         self.match_up_bindings(source)
 

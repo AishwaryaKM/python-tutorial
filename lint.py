@@ -144,6 +144,17 @@ class HandleAugAssign(Node):
             map_node(node).annotate(scope)
 
 
+# Flattens tuple-pattern arguments into a list of variable names.
+def get_argument_variables(args):
+    if isinstance(args, str):
+        yield args
+    else:
+        assert isinstance(args, (tuple, list))
+        for arg in args:
+            for result in get_argument_variables(arg):
+                yield result
+
+
 def annotate_function(node, scope):
     for default in node.defaults:
         map_node(default).annotate(scope)
@@ -154,8 +165,7 @@ def annotate_function(node, scope):
         new_env = new_env.bind(var)
     for var in global_vars:
         new_env = new_env.set_global(var)
-    # TODO: pattern args
-    for var in node.argnames:
+    for var in get_argument_variables(node.argnames):
         assert var not in global_vars
         new_env = new_env.bind(var)
     node.code.environ = new_env
