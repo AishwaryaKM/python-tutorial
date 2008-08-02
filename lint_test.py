@@ -300,6 +300,12 @@ g = 1 # VAR: g:1
 def f(): # VAR: f:func
     global g
     g = 2 # VAR: g:1
+
+def f2(): # VAR: f2:f2
+    # This global declaration has no effect, because the variable is not
+    # assigned and so would be global anyway.
+    global g
+    return g # VAR: g:1
 """
         self.match_up_bindings(source)
 

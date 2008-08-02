@@ -65,7 +65,7 @@ class Environ(object):
     def set_global(self, name):
         # Could add to global_vars too
         env = self._env.copy()
-        del env[name]
+        env.pop(name, None)
         return Environ(env, self._global_vars)
 
 
