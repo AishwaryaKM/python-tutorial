@@ -112,6 +112,13 @@ class C(object):
         self._a = 2 # FAIL: SetAttr
         self.a
         self._a # FAIL: GetAttr
+    # Only the first argument is a self var.
+    def method2(self, arg):
+        arg.a = 2 # FAIL: SetAttr
+        arg._a # FAIL: GetAttr
+    # It's possible, but not useful, to not have a self var.
+    def method3():
+        pass
 """)
 
         self.check(["func", "generator", "C", "object"], """
