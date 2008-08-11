@@ -19,7 +19,7 @@
 import compiler
 import unittest
 
-import lint
+import varbindings
 
 
 def assert_sets_equal(actual, expected):
@@ -47,7 +47,7 @@ def find_expected_bindings(source_text):
 
 
 def find_actual_bindings(tree):
-    for node in lint.iter_nodes(tree):
+    for node in varbindings.iter_nodes(tree):
         if hasattr(node, "binding"):
             yield (node.binding, node.lineno)
 
@@ -72,13 +72,13 @@ except Exception, exn:
     pass
 """)
         assert_sets_equal(
-            lint.find_assigned(tree),
+            varbindings.find_assigned(tree),
             set(["x", "y", "a", "b", "c", "d", "e", "func", "element", "exn"]))
 
         tree = parse_statement("""
 lambda x: x + 1
 """)
-        assert_sets_equal(lint.find_assigned(tree), set())
+        assert_sets_equal(varbindings.find_assigned(tree), set())
 
         tree = parse_statement("""
 import foo1
@@ -92,7 +92,7 @@ from bar.baz import qux as name3, quux as name4
 from other_module import *
 """)
         assert_sets_equal(
-            lint.find_assigned(tree),
+            varbindings.find_assigned(tree),
             set(["foo1", "foo2", "foo3", "a1", "a2", "a3", "a4",
                  "name1", "name2", "name3", "name4"]))
 
@@ -108,7 +108,7 @@ from other_module import *
 [None for z1 in range(10)
       for z2 in range(10) if z1 % 2 == 0]
 """)
-        assert_sets_equal(lint.find_assigned(tree),
+        assert_sets_equal(varbindings.find_assigned(tree),
                           set(["x", "y", "z1", "z2"]))
 
         # Generators have different binding rules: they introduce new
@@ -118,7 +118,7 @@ list(x+1 for x, y in enumerate(range(100)))
 list(None for z1 in range(10)
           for z2 in range(10) if z1 % 2 == 0)
 """)
-        assert_sets_equal(lint.find_assigned(tree), set())
+        assert_sets_equal(varbindings.find_assigned(tree), set())
 
     def test_find_globals(self):
         tree = parse_statement("""
@@ -135,7 +135,7 @@ def func(arg):
 class C:
     global hidden2
 """)
-        self.assertEquals(lint.find_globals(tree),
+        self.assertEquals(varbindings.find_globals(tree),
                           set(["a", "b", "c", "d", "e", "f"]))
         # Check that find_globals() corresponds to Python's scoping behaviour.
         eval(compiler.compile("""
@@ -197,7 +197,7 @@ func()
 
     def test_free_vars(self):
         def free_vars(text):
-            return lint.annotate(parse_statement(text))
+            return varbindings.annotate(parse_statement(text))
         text = """
 f(a.attr)
 def func(v):
@@ -249,7 +249,7 @@ class C(object):
 
     def match_up_bindings(self, source):
         tree = parse_statement(source)
-        lint.annotate(tree)
+        varbindings.annotate(tree)
         got_vars = list(find_actual_bindings(tree))
         expected = list(find_expected_bindings(source))
         # Check that lines refer to the expected variable names.

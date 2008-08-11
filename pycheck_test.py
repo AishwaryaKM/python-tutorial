@@ -18,8 +18,8 @@
 
 import unittest
 
-from lint_test import parse_statement
-import lint
+from varbindings_test import parse_statement
+import varbindings
 import pycheck
 
 
@@ -53,7 +53,7 @@ blahh # FAIL: InsufficientCheeseError
 
     def check(self, free_vars, code_text):
         tree = parse_statement(code_text)
-        global_vars = lint.annotate(tree)
+        global_vars = varbindings.annotate(tree)
         self.assertEquals(global_vars, set(free_vars))
         logged = pycheck.check(tree)
         self.assertEquals(sorted([(error, node.lineno)

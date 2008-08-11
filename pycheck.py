@@ -21,7 +21,7 @@ import compiler
 import linecache
 import sys
 
-import lint
+import varbindings
 
 
 def find_all(node, node_type):
@@ -55,10 +55,10 @@ def check(tree):
                 if not binding.is_assigned:
                     binding.is_self_var = True
     for node in find_all(tree, ast.AssAttr):
-        if not lint.map_node(node.expr).is_self_var():
+        if not varbindings.map_node(node.expr).is_self_var():
             log.append(("SetAttr", node))
     for node in find_all(tree, ast.Getattr):
-        if (not lint.map_node(node.expr).is_self_var() and
+        if (not varbindings.map_node(node.expr).is_self_var() and
             is_private_attr(node.attrname)):
             log.append(("GetAttr", node))
     for node in find_all(tree, (ast.Print, ast.Printnl)):
@@ -71,7 +71,7 @@ def check(tree):
 def main(args, stdout):
     for filename in args:
         tree = compiler.parseFile(filename)
-        lint.annotate(tree)
+        varbindings.annotate(tree)
         log = check(tree)
         for error, node in log:
             line = linecache.getline(filename, node.lineno).strip()
