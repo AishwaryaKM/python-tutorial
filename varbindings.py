@@ -32,6 +32,7 @@ class Binding(object):
         self.is_global = is_global
         self.is_self_var = False
         self.is_assigned = False
+        self.is_read = False
 
     def __repr__(self):
         return "<Binding 0x%x %r global=%s>" % (
@@ -56,13 +57,15 @@ class Environ(object):
                 self._global_vars[name] = Binding(name, is_global=True)
             return self._global_vars[name]
 
-    def record(self, node, name, assigns):
+    def record(self, node, name, assigns, reads):
         if not hasattr(node, "bindings"):
             node.bindings = []
         binding = self._get(name)
         node.bindings.append(binding)
         if assigns:
             binding.is_assigned = True
+        if reads:
+            binding.is_read = True
 
     def bind(self, name):
         binding = Binding(name, is_global=False)
@@ -119,7 +122,8 @@ class HandleName(Node):
         pass
 
     def annotate(self, scope):
-        scope.local_env.record(self._node, self._node.name, assigns=False)
+        scope.local_env.record(self._node, self._node.name, assigns=False,
+                               reads=True)
 
     def is_self_var(self):
         return get_only(self._node.bindings).is_self_var
@@ -135,7 +139,8 @@ class HandleAssName(Node):
         pass
 
     def annotate(self, scope):
-        scope.local_env.record(self._node, self._node.name, assigns=True)
+        scope.local_env.record(self._node, self._node.name, assigns=True,
+                               reads=False)
 
 
 class HandleAugAssignVariable(Node):
@@ -149,7 +154,8 @@ class HandleAugAssignVariable(Node):
 
     def annotate(self, scope):
         assert isinstance(self._node.node, ast.Name)
-        scope.local_env.record(self._node, self._node.node.name, assigns=True)
+        scope.local_env.record(self._node, self._node.node.name, assigns=True,
+                               reads=True)
         for node in self._node.getChildNodes():
             map_node(node).annotate(scope)
 
@@ -218,7 +224,8 @@ class HandleFunction(Node):
         pass
 
     def annotate(self, scope):
-        scope.local_env.record(self._node, self._node.name, assigns=True)
+        scope.local_env.record(self._node, self._node.name, assigns=True,
+                               reads=False)
         annotate_function(self._node, scope)
 
 
@@ -233,7 +240,8 @@ class HandleClass(Node):
         pass
 
     def annotate(self, scope):
-        scope.local_env.record(self._node, self._node.name, assigns=True)
+        scope.local_env.record(self._node, self._node.name, assigns=True,
+                               reads=False)
         for base in self._node.bases:
             map_node(base).annotate(scope)
         # Classes have weird-assed scoping rules.
@@ -354,7 +362,8 @@ class HandleImport(Node):
 
     def annotate(self, scope):
         for var_name in self._get_assigned():
-            scope.local_env.record(self._node, var_name, assigns=True)
+            scope.local_env.record(self._node, var_name, assigns=True,
+                                   reads=False)
 
 
 class HandleFromImport(Node):
@@ -376,7 +385,8 @@ class HandleFromImport(Node):
 
     def annotate(self, scope):
         for var_name in self._get_assigned():
-            scope.local_env.record(self._node, var_name, assigns=True)
+            scope.local_env.record(self._node, var_name, assigns=True,
+                                   reads=False)
 
 
 # Boring AST nodes are those that do not affect variable binding.

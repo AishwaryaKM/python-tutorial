@@ -271,17 +271,33 @@ for a.foo in [2]: # FAIL: SetAttr
     pass
 """)
 
-    @TODO_test
-    def test_check_2(self):
+        self.check(["C", "object", "True"], """
+class C(object):
+    # This is currently rejected but it doesn't need to be.
+    if True:
+        def method(self):
+            return self._private # FAIL: GetAttr
+""")
+
         self.check(["C", "object"], """
 class C(object):
     def method(self):
-        self._private
+        # These are rejected because the method's function escapes.
+        self.attr = 1 # FAIL: SetAttr
+        return self._private # FAIL: GetAttr
+    sneaky = [method]
+""")
+
+    @TODO_test
+    def test_check_2(self):
+        self.check(["C", "object", "method"], """
+class C(object):
+    def method(self):
+        self.attr = 1 # FAIL: SetAttr
+        return self._private # FAIL: GetAttr
     # This should be rejected because it allows the method's function to
     # escape the class definition.
-    global f
-    f = method # FAIL: MethodEscapes
-    lst = [method] # FAIL: MethodEscapes
+    global method
 """)
 
     @TODO_test

@@ -48,12 +48,14 @@ def check(tree):
     log = []
     for class_node in find_all(tree, ast.Class):
         for defn in class_node.code.nodes:
-            if (isinstance(defn, ast.Function) and
-                defn.decorators is None and
-                len(defn.argnames) >= 1):
-                binding = defn.code.environ.lookup(defn.argnames[0])
-                if not binding.is_assigned:
-                    binding.is_self_var = True
+            if isinstance(defn, ast.Function):
+                method_binding = varbindings.get_only(defn.bindings)
+                if (defn.decorators is None and
+                    not method_binding.is_read and
+                    len(defn.argnames) >= 1):
+                    binding = defn.code.environ.lookup(defn.argnames[0])
+                    if not binding.is_assigned:
+                        binding.is_self_var = True
     for node in find_all(tree, ast.AssAttr):
         if not varbindings.map_node(node.expr).is_self_var():
             log.append(("SetAttr", node))

@@ -23,7 +23,7 @@ import varbindings
 
 
 def assert_sets_equal(actual, expected):
-    if actual != expected:
+    if sorted(actual) != sorted(expected):
         missing = [x for x in expected if x not in actual]
         excess = [x for x in actual if x not in expected]
         raise AssertionError("Sets don't match:\nexpected: %r\nactual: %r\n\n"
@@ -128,6 +128,30 @@ list(x+1 for x, y in enumerate(range(100)))
 list(None for z1 in range(10)
           for z2 in range(10) if z1 % 2 == 0)
 """)
+
+    def test_read_variables(self):
+        source = """
+print read1
+w1 = 1
+readwrite += 1
+del w2
+def w3():
+    return read2
+class w4:
+    pass
+import w5
+from xx import w6
+"""
+        global_vars = varbindings.annotate(parse_statement(source))
+        assert_sets_equal(sorted(global_vars.iterkeys()),
+                          ["read1", "read2", "readwrite",
+                           "w1", "w2", "w3", "w4", "w5", "w6"])
+        assert_sets_equal([var for var, binding in global_vars.iteritems()
+                           if binding.is_assigned],
+                          ["readwrite", "w1", "w2", "w3", "w4", "w5", "w6"])
+        assert_sets_equal([var for var, binding in global_vars.iteritems()
+                           if binding.is_read],
+                          ["readwrite", "read1", "read2"])
 
     def test_find_globals(self):
         tree = parse_statement("""
