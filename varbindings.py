@@ -412,7 +412,7 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "List", "Tuple", "Dict",
            "If", "While", "Break", "Continue", "Pass",
            "TryExcept", "TryFinally",
-           "Add", "Sub", "Mul", "Div", "Mod", "Power", "Compare",
+           "Add", "Sub", "Mul", "Div", "FloorDiv", "Mod", "Power", "Compare",
            "UnaryAdd", "UnarySub",
            "And", "Or", "Not",
            "Bitand", "Bitor", "Bitxor", "Invert", "LeftShift", "RightShift",
@@ -430,8 +430,7 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
     assert ty not in node_types
     node_types[ty] = HandleBoring
 
-# TODO: TryExcept, TryFinally, Lambda, With, For, Assert, comprehensions,
-# Backquote, Ellipsis, Exec, FloorDiv, Import, Raise
+# TODO: With, Backquote, Ellipsis, Exec
 
 
 def map_node(node):
