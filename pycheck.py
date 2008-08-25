@@ -57,6 +57,11 @@ def check(tree):
     for node in find_all(tree, ast.AssAttr):
         if not varbindings.map_node(node.expr).is_self_var():
             log.append(("SetAttr", node))
+    for node in find_all(tree, ast.AugAssign):
+        # In this lvalue context, Getattr is really Getattr + Setattr.
+        if isinstance(node.node, ast.Getattr):
+            if not varbindings.map_node(node.node.expr).is_self_var():
+                log.append(("SetAttr", node))
     for node in find_all(tree, ast.Getattr):
         if (not varbindings.map_node(node.expr).is_self_var() and
             is_private_attr(node.attrname)):

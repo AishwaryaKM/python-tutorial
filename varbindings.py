@@ -138,7 +138,7 @@ class HandleAssName(Node):
         scope.local_env.record(self._node, self._node.name, assigns=True)
 
 
-class HandleAugAssign(Node):
+class HandleAugAssignVariable(Node):
 
     def assigned(self, var_set):
         assert isinstance(self._node.node, ast.Name)
@@ -152,6 +152,14 @@ class HandleAugAssign(Node):
         scope.local_env.record(self._node, self._node.node.name, assigns=True)
         for node in self._node.getChildNodes():
             map_node(node).annotate(scope)
+
+
+def HandleAugAssign(node):
+    if isinstance(node.node, ast.Name):
+        return HandleAugAssignVariable(node)
+    else:
+        assert isinstance(node.node, (ast.Getattr, ast.Subscript))
+        return HandleBoring(node)
 
 
 # Flattens tuple-pattern arguments into a list of variable names.

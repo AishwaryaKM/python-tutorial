@@ -26,8 +26,9 @@ import pycheck
 def find_expected_errors(text):
     for index, line in enumerate(text.split("\n")):
         if "FAIL:" in line:
-            error = line.split("FAIL:", 1)[1]
-            yield error.strip(), index + 1
+            errors = line.split("FAIL:", 1)[1]
+            for error in errors.split(","):
+                yield error.strip(), index + 1
 
 
 # Intended to be used as a decorator.
@@ -68,6 +69,8 @@ a.b
 a._b # FAIL: GetAttr
 del a.b # FAIL: SetAttr
 del a._b # FAIL: SetAttr
+a.b += 1 # FAIL: SetAttr
+a._b += 1 # FAIL: SetAttr, GetAttr
 """)
 
         self.check(["object", "C", "C2"], """
@@ -77,6 +80,8 @@ class C(object):
         self._a = 2
         self.a
         self._a
+        self.a += 1
+        self._a += 2
         del self.a
         del self._a
 
@@ -197,6 +202,7 @@ not True
 "i" not in "team"
 [1,2][0]
 [1,2][:]
+[1,2][0] += 1
 # Comparisons can expose non-determinism, but let's ignore that for now.
 1 < 1
 # Built-in constructors.
@@ -249,6 +255,9 @@ class C(object):
         # This doesn't strictly need to be rejected, but "del" is currently
         # treated as an assignment.
         del self
+        self._foo = 1 # FAIL: SetAttr
+    def method7(self):
+        self += 100
         self._foo = 1 # FAIL: SetAttr
 """)
 
