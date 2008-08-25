@@ -128,7 +128,7 @@ class HandleName(Node):
 class HandleAssName(Node):
 
     def assigned(self, var_set):
-        assert self._node.flags == "OP_ASSIGN"
+        assert self._node.flags in ("OP_ASSIGN", "OP_DELETE")
         var_set.add(self._node.name)
 
     def find_globals(self, var_set):

@@ -86,6 +86,10 @@ except Exception, exn:
     pass
 """)
 
+        self.check_find_assigned(["x", "y"], """
+del x, y
+""")
+
         self.check_find_assigned([], """
 lambda x: x + 1
 """)
@@ -384,6 +388,14 @@ def f((x, (y, z))): # VAR: f:f
     print z # VAR: z:local3
 f = (lambda (x, (y, z)): # VAR: f:f
        x + y + z) # VAR: x:local4, y:local5, z:local6
+"""
+        self.match_up_bindings(source)
+
+        source = """
+x = 2 # VAR: x:globalx
+del x # VAR: x:globalx
+def f(): # VAR: f:f
+    del x # VAR: x:localx
 """
         self.match_up_bindings(source)
 

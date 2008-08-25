@@ -66,6 +66,8 @@ a.b = 1 # FAIL: SetAttr
 a._b = 1 # FAIL: SetAttr
 a.b
 a._b # FAIL: GetAttr
+del a.b # FAIL: SetAttr
+del a._b # FAIL: SetAttr
 """)
 
         self.check(["object", "C", "C2"], """
@@ -75,6 +77,8 @@ class C(object):
         self._a = 2
         self.a
         self._a
+        del self.a
+        del self._a
 
 class C2(object):
     # self variables don't have to be called "self".
@@ -240,6 +244,11 @@ class C(object):
         self._foo = 1
     def method5(self):
         import self # FAIL: Import
+        self._foo = 1 # FAIL: SetAttr
+    def method6(self):
+        # This doesn't strictly need to be rejected, but "del" is currently
+        # treated as an assignment.
+        del self
         self._foo = 1 # FAIL: SetAttr
 """)
 
