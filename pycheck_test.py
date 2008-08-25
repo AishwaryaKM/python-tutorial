@@ -288,15 +288,13 @@ class C(object):
     sneaky = [method]
 """)
 
-    @TODO_test
-    def test_check_2(self):
         self.check(["C", "object", "method"], """
 class C(object):
     def method(self):
+        # These are rejected because the method's function escapes via
+        # a global declaration.
         self.attr = 1 # FAIL: SetAttr
         return self._private # FAIL: GetAttr
-    # This should be rejected because it allows the method's function to
-    # escape the class definition.
     global method
 """)
 

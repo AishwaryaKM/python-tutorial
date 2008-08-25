@@ -52,6 +52,7 @@ def check(tree):
                 method_binding = varbindings.get_only(defn.bindings)
                 if (defn.decorators is None and
                     not method_binding.is_read and
+                    not method_binding.is_global and
                     len(defn.argnames) >= 1):
                     binding = defn.code.environ.lookup(defn.argnames[0])
                     if not binding.is_assigned:
