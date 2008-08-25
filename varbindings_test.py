@@ -27,7 +27,7 @@ def assert_sets_equal(actual, expected):
         missing = [x for x in expected if x not in actual]
         excess = [x for x in actual if x not in expected]
         raise AssertionError("Sets don't match:\nexpected: %r\nactual: %r\n\n"
-                             "missing: %r\nexcess: %r\n" %
+                             "missing: %r\nexcess: %r" %
                              (expected, actual, missing, excess))
 
 
@@ -48,14 +48,26 @@ def find_expected_bindings(source_text):
 
 def find_actual_bindings(tree):
     for node in varbindings.iter_nodes(tree):
-        if hasattr(node, "binding"):
-            yield (node.binding, node.lineno)
+        if hasattr(node, "bindings"):
+            for binding in node.bindings:
+                yield (binding, node.lineno)
 
 
 class LintTest(unittest.TestCase):
 
+    def check_find_assigned(self, expected_assigned_vars, code_text):
+        tree = parse_statement(code_text)
+        assert_sets_equal(varbindings.find_assigned(tree),
+                          set(expected_assigned_vars))
+        global_vars = varbindings.annotate(tree)
+        assigned_vars = set(var_name
+                            for var_name, binding in global_vars.iteritems()
+                            if binding.is_assigned)
+        assert_sets_equal(assigned_vars, set(expected_assigned_vars))
+
     def test_find_assigned(self):
-        tree = parse_statement("""
+        self.check_find_assigned(["x", "y", "a", "b", "c", "d", "e",
+                                  "func", "Class", "element", "exn"], """
 x = foo1
 y = foo2
 a, b = foo3
@@ -63,6 +75,8 @@ c += foo3
 d = e = foo4
 def func(arg):
     f = foo5
+class Class(object):
+    method = foo6
 for element in [1, 2, 3]:
     print element
 
@@ -71,16 +85,14 @@ try:
 except Exception, exn:
     pass
 """)
-        assert_sets_equal(
-            varbindings.find_assigned(tree),
-            set(["x", "y", "a", "b", "c", "d", "e", "func", "element", "exn"]))
 
-        tree = parse_statement("""
+        self.check_find_assigned([], """
 lambda x: x + 1
 """)
-        assert_sets_equal(varbindings.find_assigned(tree), set())
 
-        tree = parse_statement("""
+        self.check_find_assigned(["foo1", "foo2", "foo3",
+                                  "a1", "a2", "a3", "a4",
+                                  "name1", "name2", "name3", "name4"], """
 import foo1
 import foo2.bar
 import bar.baz as foo3
@@ -91,12 +103,8 @@ from bar.baz import name1, name2
 from bar.baz import qux as name3, quux as name4
 from other_module import *
 """)
-        assert_sets_equal(
-            varbindings.find_assigned(tree),
-            set(["foo1", "foo2", "foo3", "a1", "a2", "a3", "a4",
-                 "name1", "name2", "name3", "name4"]))
 
-        tree = parse_statement("""
+        self.check_find_assigned(["x", "y", "z1", "z2"], """
 # Assigned variables in list comprehensions escape, for no good reason
 # that I can see.  There's a good reason for the assigned variable to
 # escape from a "for" loop, but not for a list comprehension.
@@ -108,17 +116,14 @@ from other_module import *
 [None for z1 in range(10)
       for z2 in range(10) if z1 % 2 == 0]
 """)
-        assert_sets_equal(varbindings.find_assigned(tree),
-                          set(["x", "y", "z1", "z2"]))
 
         # Generators have different binding rules: they introduce new
         # scopes.
-        tree = parse_statement("""
+        self.check_find_assigned([], """
 list(x+1 for x, y in enumerate(range(100)))
 list(None for z1 in range(10)
           for z2 in range(10) if z1 % 2 == 0)
 """)
-        assert_sets_equal(varbindings.find_assigned(tree), set())
 
     def test_find_globals(self):
         tree = parse_statement("""
@@ -197,7 +202,8 @@ func()
 
     def test_free_vars(self):
         def free_vars(text):
-            return varbindings.annotate(parse_statement(text))
+            global_vars = varbindings.annotate(parse_statement(text))
+            return set(global_vars.iterkeys())
         text = """
 f(a.attr)
 def func(v):
@@ -392,7 +398,7 @@ def f(): # VAR: f:f
         source = """
 sys = 1 # VAR: sys:globalvar
 def f(): # VAR: f:f
-    import sys # TODO: this reference should be tracked
+    import sys # VAR: sys:localvar
     sys.stdout.write("hello") # VAR: sys:localvar
 """
         self.match_up_bindings(source)

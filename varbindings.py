@@ -19,6 +19,11 @@
 from compiler import ast
 
 
+def get_only(lst):
+    assert len(lst) == 1, lst
+    return lst[0]
+
+
 class Binding(object):
 
     def __init__(self, name, is_global):
@@ -52,9 +57,12 @@ class Environ(object):
             return self._global_vars[name]
 
     def record(self, node, name, assigns):
-        node.binding = self._get(name)
+        if not hasattr(node, "bindings"):
+            node.bindings = []
+        binding = self._get(name)
+        node.bindings.append(binding)
         if assigns:
-            node.binding.is_assigned = True
+            binding.is_assigned = True
 
     def bind(self, name):
         binding = Binding(name, is_global=False)
@@ -114,7 +122,7 @@ class HandleName(Node):
         scope.local_env.record(self._node, self._node.name, assigns=False)
 
     def is_self_var(self):
-        return self._node.binding.is_self_var
+        return get_only(self._node.bindings).is_self_var
 
 
 class HandleAssName(Node):
@@ -140,6 +148,8 @@ class HandleAugAssign(Node):
         pass
 
     def annotate(self, scope):
+        assert isinstance(self._node.node, ast.Name)
+        scope.local_env.record(self._node, self._node.node.name, assigns=True)
         for node in self._node.getChildNodes():
             map_node(node).annotate(scope)
 
@@ -320,39 +330,45 @@ class HandleGlobal(Node):
 
 class HandleImport(Node):
 
-    def assigned(self, var_set):
+    def _get_assigned(self):
         for module_path, as_name in self._node.names:
             if as_name is None:
                 components = module_path.split(".")
-                var_set.add(components[0])
+                yield components[0]
             else:
-                var_set.add(as_name)
+                yield as_name
+
+    def assigned(self, var_set):
+        var_set.update(self._get_assigned())
 
     def find_globals(self, var_set):
         assert self._node.getChildNodes() == ()
 
     def annotate(self, scope):
-        # TODO
-        pass
+        for var_name in self._get_assigned():
+            scope.local_env.record(self._node, var_name, assigns=True)
 
 
 class HandleFromImport(Node):
 
-    def assigned(self, var_set):
+    def _get_assigned(self):
         for attr_name, as_name in self._node.names:
             # Cannot track assignments when "from X import *" is used.
             if attr_name != "*":
                 if as_name is None:
-                    var_set.add(attr_name)
+                    yield attr_name
                 else:
-                    var_set.add(as_name)
+                    yield as_name
+
+    def assigned(self, var_set):
+        var_set.update(self._get_assigned())
 
     def find_globals(self, var_set):
         assert self._node.getChildNodes() == ()
 
     def annotate(self, scope):
-        # TODO
-        pass
+        for var_name in self._get_assigned():
+            scope.local_env.record(self._node, var_name, assigns=True)
 
 
 # Boring AST nodes are those that do not affect variable binding.
@@ -435,7 +451,7 @@ def annotate(node):
     global_vars = {}
     env = Environ({}, global_vars)
     map_node(node).annotate(make_normal_scope(env))
-    return set(global_vars.iterkeys())
+    return global_vars
 
 
 def iter_nodes(node):

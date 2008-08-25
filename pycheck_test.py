@@ -18,7 +18,7 @@
 
 import unittest
 
-from varbindings_test import parse_statement
+from varbindings_test import parse_statement, assert_sets_equal
 import varbindings
 import pycheck
 
@@ -54,9 +54,9 @@ blahh # FAIL: InsufficientCheeseError
     def check(self, free_vars, code_text):
         tree = parse_statement(code_text)
         global_vars = varbindings.annotate(tree)
-        self.assertEquals(global_vars, set(free_vars))
+        self.assertEquals(set(global_vars.iterkeys()), set(free_vars))
         logged = pycheck.check(tree)
-        self.assertEquals(sorted([(error, node.lineno)
+        assert_sets_equal(sorted([(error, node.lineno)
                                   for error, node in logged]),
                           sorted(find_expected_errors(code_text)))
 
@@ -210,7 +210,7 @@ print "foo" # FAIL: Print
 print "foo", # FAIL: Print
 """)
 
-        self.check([], """
+        self.check(["os", "unlink"], """
 # Reject all imports for the time being.
 import os # FAIL: Import
 from os import unlink # FAIL: Import
@@ -238,6 +238,9 @@ class C(object):
         list(x for x in (1,2)
                for y in [self for self in (1,2)])
         self._foo = 1
+    def method5(self):
+        import self # FAIL: Import
+        self._foo = 1 # FAIL: SetAttr
 """)
 
         self.check(["a", "list"], """
