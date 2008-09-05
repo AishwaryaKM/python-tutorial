@@ -222,12 +222,15 @@ print "foo", # FAIL: Print
 """)
 
         self.check(["os", "unlink"], """
-# Reject all imports for the time being.
-import os # FAIL: Import
-from os import unlink # FAIL: Import
-# Blanket imports should definitely be prevented because they hinder
-# analysability.
-from sys import * # FAIL: Import
+# Imports are handled via scope substitution: the interpreter implements
+# them via __builtins__.__import__.
+import os
+from os import unlink
+
+# Reject blanket imports because they hinder analysability.
+# They should not be a safety problem because Python only allows them at
+# top level, but reject them just to be on the safe side.
+from sys import * # FAIL: BlanketImport
 """)
 
         self.check(["C", "object", "list"], """
@@ -250,7 +253,7 @@ class C(object):
                for y in [self for self in (1,2)])
         self._foo = 1
     def method5(self):
-        import self # FAIL: Import
+        import self
         self._foo = 1 # FAIL: SetAttr
     def method6(self):
         # This doesn't strictly need to be rejected, but "del" is currently
