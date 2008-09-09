@@ -111,13 +111,15 @@ class ModuleLoader(object):
         assert type(name) is str
         path = name.split(".")
         module, top_module = self._import_path(path)
-        if fromlist is not None:
+        if fromlist is None:
+            return top_module
+        else:
             assert type(fromlist) is tuple
             for name in fromlist:
                 assert type(name) is str
                 if not hasattr(module, name):
                     self._import_path(path + [name])
-        return top_module
+            return module
 
     def load_file(self, filename):
         return self.eval(read_file(filename))

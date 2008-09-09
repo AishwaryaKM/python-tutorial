@@ -155,6 +155,40 @@ x = bar.a
 """)
         self.assertEquals(module.x, 123)
 
+        loader = safeeval.ModuleLoader(temp_dir)
+        module = loader.eval("""
+from foo.bar import a as x
+""")
+        self.assertEquals(module.x, 123)
+
+    def test_deeper_nested_import(self):
+        temp_dir = self.make_temp_dir()
+        os.mkdir(os.path.join(temp_dir, "foo"))
+        write_file(os.path.join(temp_dir, "foo", "__init__.py"), "")
+        os.mkdir(os.path.join(temp_dir, "foo", "qux"))
+        write_file(os.path.join(temp_dir, "foo", "qux", "__init__.py"), "")
+        write_file(os.path.join(temp_dir, "foo", "qux", "bar.py"), "a = 123")
+
+        loader = safeeval.ModuleLoader(temp_dir)
+        module = loader.eval("""
+import foo.qux.bar
+x = foo.qux.bar.a
+""")
+        self.assertEquals(module.x, 123)
+
+        loader = safeeval.ModuleLoader(temp_dir)
+        module = loader.eval("""
+from foo.qux import bar
+x = bar.a
+""")
+        self.assertEquals(module.x, 123)
+
+        loader = safeeval.ModuleLoader(temp_dir)
+        module = loader.eval("""
+from foo.qux.bar import a as x
+""")
+        self.assertEquals(module.x, 123)
+
     def test_missing_import(self):
         loader = safeeval.ModuleLoader(self.make_temp_dir())
         self.assertRaises(ImportError, lambda: loader.eval("import foo"))
