@@ -417,7 +417,8 @@ node_types = {
     "Import": HandleImport,
     "From": HandleFromImport,
     }
-for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
+for ty in ("Stmt", "Assign", "AssTuple", "AssList", "AssAttr",
+           "Const", "Discard",
            "CallFunc", "Getattr", "Return", "Yield",
            "List", "Tuple", "Dict",
            "If", "While", "Break", "Continue", "Pass",

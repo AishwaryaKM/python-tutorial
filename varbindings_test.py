@@ -66,11 +66,12 @@ class LintTest(unittest.TestCase):
         assert_sets_equal(assigned_vars, set(expected_assigned_vars))
 
     def test_find_assigned(self):
-        self.check_find_assigned(["x", "y", "a", "b", "c", "d", "e",
+        self.check_find_assigned(["x", "y", "a", "b", "a2", "b2", "c", "d", "e",
                                   "func", "Class", "element", "exn"], """
 x = foo1
 y = foo2
 a, b = foo3
+[a2, b2] = foo3
 c += foo3
 d = e = foo4
 def func(arg):
