@@ -427,6 +427,7 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
            "And", "Or", "Not",
            "Bitand", "Bitor", "Bitxor", "Invert", "LeftShift", "RightShift",
            "Subscript", "Slice",
+           "Backquote",
            "Print", "Printnl",
            "Assert", "Raise",
            "Keyword", # Keyword arguments to functions.
@@ -440,7 +441,7 @@ for ty in ("Stmt", "Assign", "AssTuple", "Const", "AssAttr", "Discard",
     assert ty not in node_types
     node_types[ty] = HandleBoring
 
-# TODO: With, Backquote, Ellipsis, Exec
+# TODO: With, Ellipsis, Exec
 
 
 def map_node(node):

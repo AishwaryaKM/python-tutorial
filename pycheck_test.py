@@ -301,6 +301,13 @@ class C(object):
     global method
 """)
 
+        self.check([], """
+# The backtick syntax is a deprecated and rather pointless shortcut
+# for repr().  Allow it for now because it is not harmful, but any
+# lint tool should reject it.
+`"foo"`
+""")
+
     @TODO_test
     def test_check_3(self):
         self.check(["Exception", "object"], """
