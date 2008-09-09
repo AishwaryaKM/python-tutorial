@@ -26,7 +26,22 @@ import varbindings
 
 class VerifyError(Exception):
 
-    pass
+    # Is it a good idea to include the failed parts of the source code
+    # by default?  It might expose source code that is intended to be
+    # concealed.
+    def __init__(self, log, source_code):
+        self._source_code = source_code
+        self._log = log
+
+    # TODO: allow a filename to be included in the output.
+    def __str__(self):
+        parts = []
+        # Could use something like linecache here.
+        source_lines = self._source_code.split("\n")
+        for error, node in self._log:
+            line = source_lines[node.lineno - 1].strip()
+            parts.append("\nline %i: %s\n  %s" % (node.lineno, error, line))
+        return "".join(parts)
 
 
 def safe_eval(source_code, builtins):
@@ -48,7 +63,7 @@ def safe_eval(source_code, builtins):
     varbindings.annotate(tree)
     log = pycheck.check(tree)
     if len(log) > 0:
-        raise VerifyError(log)
+        raise VerifyError(log, source_code)
     exec source_code in module.__dict__
     return module
 

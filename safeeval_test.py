@@ -102,6 +102,20 @@ x = 456
         else:
             self.fail("Expected import to fail")
 
+    def test_informative_error(self):
+        try:
+            safeeval.safe_eval("""
+def func():
+    x.y = 1
+""", {})
+        except safeeval.VerifyError, exn:
+            self.assertEquals(str(exn), """
+line 3: SetAttr
+  x.y = 1\
+""")
+        else:
+            self.fail("Expected exception")
+
 
 class ModuleLoaderTest(tempdir_test.TempDirTestCase):
 
