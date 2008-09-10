@@ -44,6 +44,27 @@ class VerifyError(Exception):
         return "".join(parts)
 
 
+class Environment(object):
+
+    # We cannot let untrusted code provide its own __builtins__ object
+    # directly because it could provide its own __import__ function,
+    # and Python calls __import__ with locals and globals
+    # dictionaries.  We need to wrap __import__.
+
+    def __init__(self):
+        self._dict = {}
+
+    def bind(self, name, value):
+        assert type(name) is str
+        assert not name.startswith("_")
+        self._dict[name] = value
+
+    def set_importer(self, func):
+        def import_wrapper(name, globals=None, locals=None, fromlist=None):
+            return func(name, fromlist)
+        self._dict["__import__"] = import_wrapper
+
+
 def safe_eval(source_code, builtins):
     # The Reference Manual for Python 2.5 says:
     # "As a side effect, an implementation may insert additional keys
@@ -57,8 +78,9 @@ def safe_eval(source_code, builtins):
     # and Python would fill it out with the default, giving the caller
     # access to all the real builtins.
     assert type(source_code) is str
+    assert type(builtins) is Environment
     module = types.ModuleType("__safe_eval_module__")
-    module.__dict__["__builtins__"] = builtins
+    module.__dict__["__builtins__"] = builtins._dict
     tree = compiler.parse(source_code)
     varbindings.annotate(tree)
     log = pycheck.check(tree)
@@ -81,6 +103,8 @@ class ModuleLoader(object):
     def __init__(self, source_dir):
         self._modules = {}
         self._dir = source_dir
+        self._env = Environment()
+        self._env.set_importer(self._import_module)
 
     def _import_path(self, path):
         assert len(path) > 0
@@ -107,7 +131,7 @@ class ModuleLoader(object):
                 return module, top_module
         raise ImportError("No module named %s" % name)
 
-    def _import_module(self, name, globals=None, locals=None, fromlist=None):
+    def _import_module(self, name, fromlist=None):
         assert type(name) is str
         path = name.split(".")
         module, top_module = self._import_path(path)
@@ -125,4 +149,4 @@ class ModuleLoader(object):
         return self.eval(read_file(filename))
 
     def eval(self, source):
-        return safe_eval(source, {"__import__": self._import_module})
+        return safe_eval(source, self._env)

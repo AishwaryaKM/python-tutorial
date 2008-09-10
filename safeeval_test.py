@@ -62,41 +62,46 @@ class TestAssumptionsAboutPython(unittest.TestCase):
 class EvalTest(unittest.TestCase):
 
     def test_default_module_attributes(self):
-        module = safeeval.safe_eval("", {})
+        module = safeeval.safe_eval("", safeeval.Environment())
         self.assertEquals(sorted(module.__dict__.keys()),
                           ["__builtins__", "__doc__", "__name__"])
 
     def test_assignment_to_local(self):
-        module = safeeval.safe_eval("a = 42", {})
+        module = safeeval.safe_eval("a = 42", safeeval.Environment())
         self.assertEquals(visible_dict(module.__dict__), {"a": 42})
 
     def test_assignment_to_global(self):
         module = safeeval.safe_eval("""
 global a
 a = 42
-""", {})
+""", safeeval.Environment())
         self.assertEquals(visible_dict(module.__dict__), {"a": 42})
 
     def test_no_access_to_builtins(self):
-        self.assertRaises(NameError,
-                          lambda: safeeval.safe_eval("open", {}))
+        self.assertRaises(
+            NameError,
+            lambda: safeeval.safe_eval("open", safeeval.Environment()))
 
     def test_rejecting_bad_code(self):
-        self.assertRaises(safeeval.VerifyError,
-                          lambda: safeeval.safe_eval("x._y", {}))
+        self.assertRaises(
+            safeeval.VerifyError,
+            lambda: safeeval.safe_eval("x._y", safeeval.Environment()))
 
     def test_initial_environment(self):
-        env = {"x": 123}
+        env = safeeval.Environment()
+        env.bind("x", 123)
         module = safeeval.safe_eval("""
 y = x
 x = 456
 """, env)
-        self.assertEquals(env, {"x": 123})
+        # The __builtins__ dictionary should be unchanged despite the
+        # assignment to "x".
+        self.assertEquals(env._dict, {"x": 123})
         self.assertEquals(visible_dict(module.__dict__), {"y": 123, "x": 456})
 
     def test_import_failing(self):
         try:
-            safeeval.safe_eval("import foo", {})
+            safeeval.safe_eval("import foo", safeeval.Environment())
         except ImportError, exn:
             self.assertEquals(str(exn), "__import__ not found")
         else:
@@ -107,7 +112,7 @@ x = 456
             safeeval.safe_eval("""
 def func():
     x.y = 1
-""", {})
+""", safeeval.Environment())
         except safeeval.VerifyError, exn:
             self.assertEquals(str(exn), """
 line 3: SetAttr
@@ -115,6 +120,54 @@ line 3: SetAttr
 """)
         else:
             self.fail("Expected exception")
+
+    def test_exploit_via_import(self):
+        # This demonstrates how untamed use of __import__ could
+        # capture a local environment dictionary which can be used to
+        # capture a method function out of a class scope.
+        def exploit():
+            captured = []
+            def my_import(name, globals, locals, fromlist):
+                captured.append(locals["method"])
+            safeeval.safe_eval("""
+class C:
+    def method(self):
+        self._private = "dangerous"
+    import bob
+""", {"__import__": my_import})
+            self.assertEquals(len(captured), 1)
+            class UnrelatedObject(object):
+                pass
+            obj = UnrelatedObject()
+            captured[0](obj)
+            self.assertEquals(obj._private, "dangerous1")
+
+        self.assertRaises(AssertionError, exploit)
+
+    def test_restrictions_on_builtins(self):
+        env = safeeval.Environment()
+        # __import__ cannot be defined directly.
+        self.assertRaises(AssertionError,
+                          lambda: env.bind("__import__", lambda *args: None))
+
+    def test_import_wrapping(self):
+        # Check that the import function is not passed locals or
+        # globals dictionaries.
+        class Example(object):
+            baz = 1
+            bazz = 2
+        got = []
+        def my_import(*args):
+            got.append(args)
+            return Example()
+        env = safeeval.Environment()
+        env.set_importer(my_import)
+        safeeval.safe_eval("""
+import foo.bar1
+from foo.bar2 import baz as quux, bazz as quuux
+""", env)
+        self.assertEquals(got, [("foo.bar1", None),
+                                ("foo.bar2", ("baz", "bazz"))])
 
 
 class ModuleLoaderTest(tempdir_test.TempDirTestCase):
