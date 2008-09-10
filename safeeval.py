@@ -52,17 +52,20 @@ class Environment(object):
     # dictionaries.  We need to wrap __import__.
 
     def __init__(self):
-        self._dict = {}
+        # Python allows the __builtins__ object to be a dictionary or
+        # a module.  We use a module in order to make it read-only to
+        # CapPython code.
+        self._module = types.ModuleType("__safe_eval_builtins__")
 
     def bind(self, name, value):
         assert type(name) is str
         assert not name.startswith("_")
-        self._dict[name] = value
+        self._module.__dict__[name] = value
 
     def set_importer(self, func):
         def import_wrapper(name, globals=None, locals=None, fromlist=None):
             return func(name, fromlist)
-        self._dict["__import__"] = import_wrapper
+        self._module.__dict__["__import__"] = import_wrapper
 
 
 def safe_eval(source_code, builtins):
@@ -80,7 +83,7 @@ def safe_eval(source_code, builtins):
     assert type(source_code) is str
     assert type(builtins) is Environment
     module = types.ModuleType("__safe_eval_module__")
-    module.__dict__["__builtins__"] = builtins._dict
+    module.__dict__["__builtins__"] = builtins._module
     tree = compiler.parse(source_code)
     varbindings.annotate(tree)
     log = pycheck.check(tree)

@@ -62,9 +62,14 @@ class TestAssumptionsAboutPython(unittest.TestCase):
 class EvalTest(unittest.TestCase):
 
     def test_default_module_attributes(self):
-        module = safeeval.safe_eval("", safeeval.Environment())
+        env = safeeval.Environment()
+        module = safeeval.safe_eval("", env)
+        # Checks that Python is not adding extra attributes to the
+        # module or to its __builtins__ object.
         self.assertEquals(sorted(module.__dict__.keys()),
                           ["__builtins__", "__doc__", "__name__"])
+        self.assertEquals(sorted(env._module.__dict__.keys()),
+                          ["__doc__", "__name__"])
 
     def test_assignment_to_local(self):
         module = safeeval.safe_eval("a = 42", safeeval.Environment())
@@ -90,13 +95,15 @@ a = 42
     def test_initial_environment(self):
         env = safeeval.Environment()
         env.bind("x", 123)
+        env_copy = dict(env._module.__dict__)
         module = safeeval.safe_eval("""
 y = x
 x = 456
 """, env)
         # The __builtins__ dictionary should be unchanged despite the
         # assignment to "x".
-        self.assertEquals(env._dict, {"x": 123})
+        self.assertEquals(env._module.x, 123)
+        self.assertEquals(env._module.__dict__, env_copy)
         self.assertEquals(visible_dict(module.__dict__), {"y": 123, "x": 456})
 
     def test_import_failing(self):
@@ -168,6 +175,21 @@ from foo.bar2 import baz as quux, bazz as quuux
 """, env)
         self.assertEquals(got, [("foo.bar1", None),
                                 ("foo.bar2", ("baz", "bazz"))])
+
+    def test_builtins_object_is_readonly(self):
+        # If __builtins__ is accessible, it should be read-only, so
+        # that it can be shared between mutually distrusting modules,
+        # and so that __import__ cannot be assigned (because it
+        # exposes the "locals" dict).
+        # We don't have to make the __builtins__ object accessible though.
+        code = '__builtins__["__import__"] = 1'
+        try:
+            safeeval.safe_eval(code, safeeval.Environment())
+        except TypeError, exn:
+            self.assertEquals(
+                str(exn), "'module' object does not support item assignment")
+        else:
+            self.fail("Expected TypeError")
 
 
 class ModuleLoaderTest(tempdir_test.TempDirTestCase):
