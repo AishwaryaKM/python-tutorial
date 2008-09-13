@@ -181,10 +181,15 @@ from foo.bar2 import baz as quux, bazz as quuux
         # that it can be shared between mutually distrusting modules,
         # and so that __import__ cannot be assigned (because it
         # exposes the "locals" dict).
-        # We don't have to make the __builtins__ object accessible though.
-        code = '__builtins__["__import__"] = 1'
+        # We don't make the __builtins__ object accessible though.
+        # This test uses a trick of passing in "globals", which is not
+        # a safe function, so that we can test an object that is not
+        # normally accessible.
+        code = 'globals()["__builtins__"]["__import__"] = 1'
+        env = safeeval.Environment()
+        env.bind("globals", globals)
         try:
-            safeeval.safe_eval(code, safeeval.Environment())
+            safeeval.safe_eval(code, env)
         except TypeError, exn:
             self.assertEquals(
                 str(exn), "'module' object does not support item assignment")

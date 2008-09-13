@@ -16,9 +16,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA.
 
+import StringIO
+import os
 import unittest
 
 from varbindings_test import parse_statement, assert_sets_equal
+import tempdir_test
 import varbindings
 import pycheck
 
@@ -54,9 +57,9 @@ blahh # FAIL: InsufficientCheeseError
 
     def check(self, free_vars, code_text):
         tree = parse_statement(code_text)
-        global_vars = varbindings.annotate(tree)
+        global_vars, all_bindings = varbindings.annotate(tree)
         self.assertEquals(set(global_vars.iterkeys()), set(free_vars))
-        logged = pycheck.check(tree)
+        logged = pycheck.check(tree, all_bindings)
         assert_sets_equal(sorted([(error, node.lineno)
                                   for error, node in logged]),
                           sorted(find_expected_errors(code_text)))
@@ -308,6 +311,40 @@ class C(object):
 `"foo"`
 """)
 
+        self.check(["C", "object", "x", "__builtins__", "__mightbespecial__",
+                    "func", "__foo", "_foo", "foo_", "foo__",
+                    "__foo_", "_foo__"], """
+class C(object):
+    # Use of __metaclass__ must be blocked because it provides a way
+    # to obtain unwrapped method functions.
+    __metaclass__ = x # FAIL: SpecialVar
+    def __init__(self):
+        self._foo = 1
+
+# Assignment to __builtins__ should be blocked because it could give a
+# way to provide an unwrapped __import__ function, which is called
+# with a local environment dictionary.  It happens that Python caches
+# __builtins__ so this assignment is not harmful, but that is an
+# implementation detail and it is better if we don't rely on it.
+__builtins__ = {"__import__": x} # FAIL: SpecialVar
+
+# Any other variable of the form __X__ should be blocked, to be on the
+# safe side, in case Python gives them special meanings.
+__mightbespecial__ = x # FAIL: SpecialVar
+# This applies to local scopes too:
+def func(__mightbespecial2__): # FAIL: SpecialVar
+    pass
+def func():
+    __mightbespecial3__ = x # FAIL: SpecialVar
+# But these variable names are OK:
+__foo = x
+_foo = x
+foo_ = x
+foo__ = x
+__foo_ = x
+_foo__ = x
+""")
+
     @TODO_test
     def test_check_3(self):
         self.check(["Exception", "object"], """
@@ -355,6 +392,28 @@ raise Exception(object()) # FAIL: Raise
             for attr in dir(obj):
                 assert (pycheck.is_private_attr(attr) or
                         attr in allowed_attrs), attr
+
+
+def write_file(filename, data):
+    fh = open(filename, "w")
+    try:
+        fh.write(data)
+    finally:
+        fh.close()
+
+
+class TestFrontEnd(tempdir_test.TempDirTestCase):
+
+    def test_front_end(self):
+        temp_dir = self.make_temp_dir()
+        filename = os.path.join(temp_dir, "foo.py")
+        write_file(filename, """
+x._y = 1
+""")
+        stream = StringIO.StringIO()
+        pycheck.main([filename], stream)
+        self.assertEquals(stream.getvalue(),
+                          "%s:2: SetAttr\n  x._y = 1\n" % filename)
 
 
 if __name__ == "__main__":

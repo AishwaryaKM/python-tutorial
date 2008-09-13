@@ -24,15 +24,30 @@ def get_only(lst):
     return lst[0]
 
 
+class VariableReference(object):
+
+    def __init__(self, node, is_assignment, is_read):
+        self.node = node
+        self.is_assignment = is_assignment
+        self.is_read = is_read
+
+
 class Binding(object):
 
     def __init__(self, name, is_global):
         assert type(name) == str, name
         self.name = name
         self.is_global = is_global
+        self.references = []
         self.is_self_var = False
-        self.is_assigned = False
-        self.is_read = False
+
+    @property
+    def is_assigned(self):
+        return any(ref.is_assignment for ref in self.references)
+
+    @property
+    def is_read(self):
+        return any(ref.is_read for ref in self.references)
 
     def __repr__(self):
         return "<Binding 0x%x %r global=%s>" % (
@@ -42,9 +57,10 @@ class Binding(object):
 # An environment is a mapping from variable names to bindings.
 class Environ(object):
 
-    def __init__(self, env, global_vars):
+    def __init__(self, env, global_vars, all_bindings):
         self._env = env
         self._global_vars = global_vars
+        self._all_bindings = all_bindings
 
     def lookup(self, name):
         return self._env[name]
@@ -54,7 +70,9 @@ class Environ(object):
             return self._env[name]
         else:
             if name not in self._global_vars:
-                self._global_vars[name] = Binding(name, is_global=True)
+                binding = Binding(name, is_global=True)
+                self._global_vars[name] = binding
+                self._all_bindings.append(binding)
             return self._global_vars[name]
 
     def record(self, node, name, assigns, reads):
@@ -62,22 +80,21 @@ class Environ(object):
             node.bindings = []
         binding = self._get(name)
         node.bindings.append(binding)
-        if assigns:
-            binding.is_assigned = True
-        if reads:
-            binding.is_read = True
+        var_ref = VariableReference(node, is_assignment=assigns, is_read=reads)
+        binding.references.append(var_ref)
 
     def bind(self, name):
         binding = Binding(name, is_global=False)
+        self._all_bindings.append(binding)
         env = self._env.copy()
         env[name] = binding
-        return Environ(env, self._global_vars)
+        return Environ(env, self._global_vars, self._all_bindings)
 
     def set_global(self, name):
         # Could add to global_vars too
         env = self._env.copy()
         env.pop(name, None)
-        return Environ(env, self._global_vars)
+        return Environ(env, self._global_vars, self._all_bindings)
 
 
 class Scope(object):
@@ -192,6 +209,10 @@ def annotate_function(node, scope):
     for var in get_argument_variables(node.argnames):
         assert var not in global_vars
         new_env = new_env.bind(var)
+        # Record the argument binding as a reference so that the line
+        # number can be reported.
+        new_env.lookup(var).references.append(
+            VariableReference(node, is_assignment=False, is_read=False))
     node.code.environ = new_env
     map_node(node.code).annotate(make_normal_scope(new_env))
 
@@ -468,9 +489,10 @@ def find_globals(node):
 
 def annotate(node):
     global_vars = {}
-    env = Environ({}, global_vars)
+    all_bindings = []
+    env = Environ({}, global_vars, all_bindings)
     map_node(node).annotate(make_normal_scope(env))
-    return global_vars
+    return global_vars, all_bindings
 
 
 def iter_nodes(node):

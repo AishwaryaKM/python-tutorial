@@ -44,7 +44,14 @@ def is_private_attr(name):
             name.startswith("gi_"))
 
 
-def check(tree):
+def is_special_var(name):
+    if name == "__init__":
+        return False
+    else:
+        return name.startswith("__") and name.endswith("__")
+
+
+def check(tree, bindings):
     log = []
     for class_node in find_all(tree, ast.Class):
         for defn in class_node.code.nodes:
@@ -75,14 +82,19 @@ def check(tree):
         for attr_name, as_name in node.names:
             if attr_name == "*":
                 log.append(("BlanketImport", node))
+    for binding in bindings:
+        if is_special_var(binding.name):
+            assert len(binding.references) > 0
+            for var_ref in binding.references:
+                log.append(("SpecialVar", var_ref.node))
     return log
 
 
 def main(args, stdout):
     for filename in args:
         tree = compiler.parseFile(filename)
-        varbindings.annotate(tree)
-        log = check(tree)
+        global_vars, bindings = varbindings.annotate(tree)
+        log = check(tree, bindings)
         for error, node in log:
             line = linecache.getline(filename, node.lineno).strip()
             stdout.write("%s:%i: %s\n  %s\n"

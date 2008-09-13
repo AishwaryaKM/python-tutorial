@@ -85,8 +85,8 @@ def safe_eval(source_code, builtins):
     module = types.ModuleType("__safe_eval_module__")
     module.__dict__["__builtins__"] = builtins._module
     tree = compiler.parse(source_code)
-    varbindings.annotate(tree)
-    log = pycheck.check(tree)
+    global_vars, bindings = varbindings.annotate(tree)
+    log = pycheck.check(tree, bindings)
     if len(log) > 0:
         raise VerifyError(log, source_code)
     exec source_code in module.__dict__

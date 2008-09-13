@@ -46,6 +46,7 @@ def find_expected_bindings(source_text):
         yield line_vars
 
 
+# Could be replaced with use of the bindings list returned by annotate().
 def find_actual_bindings(tree):
     for node in varbindings.iter_nodes(tree):
         if hasattr(node, "bindings"):
@@ -59,7 +60,7 @@ class LintTest(unittest.TestCase):
         tree = parse_statement(code_text)
         assert_sets_equal(varbindings.find_assigned(tree),
                           set(expected_assigned_vars))
-        global_vars = varbindings.annotate(tree)
+        global_vars, bindings = varbindings.annotate(tree)
         assigned_vars = set(var_name
                             for var_name, binding in global_vars.iteritems()
                             if binding.is_assigned)
@@ -143,7 +144,7 @@ class w4:
 import w5
 from xx import w6
 """
-        global_vars = varbindings.annotate(parse_statement(source))
+        global_vars, bindings = varbindings.annotate(parse_statement(source))
         assert_sets_equal(sorted(global_vars.iterkeys()),
                           ["read1", "read2", "readwrite",
                            "w1", "w2", "w3", "w4", "w5", "w6"])
@@ -231,7 +232,7 @@ func()
 
     def test_free_vars(self):
         def free_vars(text):
-            global_vars = varbindings.annotate(parse_statement(text))
+            global_vars, bindings = varbindings.annotate(parse_statement(text))
             return set(global_vars.iterkeys())
         text = """
 f(a.attr)
@@ -504,6 +505,23 @@ finally:
     print x # VAR: x:x
 """
         self.match_up_bindings(source)
+
+    def test_listing_variable_references(self):
+        source = """
+x = 1
+print x
+"""
+        tree = parse_statement(source)
+        global_vars, bindings = varbindings.annotate(tree)
+        self.assertEquals(global_vars.keys(), ["x"])
+        refs = global_vars["x"].references
+        self.assertEquals(len(refs), 2)
+        self.assertEquals(refs[0].is_assignment, True)
+        self.assertEquals(refs[0].is_read, False)
+        self.assertEquals(refs[0].node.lineno, 2)
+        self.assertEquals(refs[1].is_assignment, False)
+        self.assertEquals(refs[1].is_read, True)
+        self.assertEquals(refs[1].node.lineno, 3)
 
 
 if __name__ == "__main__":
