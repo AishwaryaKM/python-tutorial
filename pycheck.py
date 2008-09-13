@@ -78,6 +78,8 @@ def check(tree, bindings):
             log.append(("GetAttr", node))
     for node in find_all(tree, (ast.Print, ast.Printnl)):
         log.append(("Print", node))
+    for node in find_all(tree, ast.Exec):
+        log.append(("Exec", node))
     for node in find_all(tree, ast.From):
         for attr_name, as_name in node.names:
             if attr_name == "*":

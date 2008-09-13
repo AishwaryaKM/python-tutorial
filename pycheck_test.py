@@ -345,6 +345,10 @@ __foo_ = x
 _foo__ = x
 """)
 
+        self.check(["expr", "env"], """
+exec expr in env # FAIL: Exec
+""")
+
     @TODO_test
     def test_check_3(self):
         self.check(["Exception", "object"], """
