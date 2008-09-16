@@ -157,6 +157,8 @@ class C:
         # __import__ cannot be defined directly.
         self.assertRaises(AssertionError,
                           lambda: env.bind("__import__", lambda *args: None))
+        self.assertRaises(AssertionError,
+                          lambda: env.bind("_mightbespecial", 1))
 
     def test_import_wrapping(self):
         # Check that the import function is not passed locals or

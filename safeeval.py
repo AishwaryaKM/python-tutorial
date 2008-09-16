@@ -106,6 +106,11 @@ class Evaluator(object):
                 print VerifyError(log, source_code)
             else:
                 raise VerifyError(log, source_code)
+        for var_name, binding in sorted(global_vars.iteritems()):
+            if not binding.is_assigned:
+                assert binding.is_read
+                if var_name not in builtins._module.__dict__:
+                    print filename, "unbound:", var_name
         code = compile(source_code, filename, "exec")
         exec code in module.__dict__
         return module
@@ -122,6 +127,31 @@ def read_file(filename):
         fh.close()
 
 
+def safe_hasattr(obj, attrname):
+    return not pycheck.is_private_attr(attrname) and hasattr(obj, attrname)
+
+def type_is(obj, ty):
+    return type(obj) is ty
+
+
+def safe_builtins():
+    for name in ("None", "True", "False",
+                 "ImportError", "IOError", "NameError", "KeyError",
+                 "AttributeError", "TypeError", "IndexError",
+                 "StopIteration",
+                 "dict", "list", "tuple", "int", "str",
+                 "chr", "ord",
+                 "range", "xrange",
+                 "len",
+                 "min", "max",
+                 "isinstance",
+                 ):
+        yield name, __builtins__[name]
+    yield "hasattr", safe_hasattr
+    # non-standard
+    yield "type_is", type_is
+
+
 class ModuleLoader(object):
 
     def __init__(self, source_dir, eval_func=safe_eval):
@@ -130,6 +160,8 @@ class ModuleLoader(object):
         self._eval_func = eval_func
         self._env = Environment()
         self._env.set_importer(self._import_module)
+        for name, value in safe_builtins():
+            self._env.bind(name, value)
 
     def add_module(self, name, module):
         # We don't handle compound module names yet.
