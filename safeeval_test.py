@@ -204,7 +204,7 @@ class ModuleLoaderTest(tempdir_test.TempDirTestCase):
 
     def test_simple_import(self):
         temp_dir = self.make_temp_dir()
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         write_file(os.path.join(temp_dir, "foo.py"), "a = 123")
         module = loader.eval("""
 import foo
@@ -224,21 +224,21 @@ from foo import a as y
         write_file(os.path.join(temp_dir, "foo", "__init__.py"), "")
         write_file(os.path.join(temp_dir, "foo", "bar.py"), "a = 123")
 
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         module = loader.eval("""
 import foo.bar
 x = foo.bar.a
 """)
         self.assertEquals(module.x, 123)
 
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         module = loader.eval("""
 from foo import bar
 x = bar.a
 """)
         self.assertEquals(module.x, 123)
 
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         module = loader.eval("""
 from foo.bar import a as x
 """)
@@ -252,28 +252,41 @@ from foo.bar import a as x
         write_file(os.path.join(temp_dir, "foo", "qux", "__init__.py"), "")
         write_file(os.path.join(temp_dir, "foo", "qux", "bar.py"), "a = 123")
 
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         module = loader.eval("""
 import foo.qux.bar
 x = foo.qux.bar.a
 """)
         self.assertEquals(module.x, 123)
 
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         module = loader.eval("""
 from foo.qux import bar
 x = bar.a
 """)
         self.assertEquals(module.x, 123)
 
-        loader = safeeval.ModuleLoader(temp_dir)
+        loader = safeeval.ModuleLoader([temp_dir])
         module = loader.eval("""
 from foo.qux.bar import a as x
 """)
         self.assertEquals(module.x, 123)
 
+    def test_search_path(self):
+        temp_dir1 = self.make_temp_dir()
+        temp_dir2 = self.make_temp_dir()
+        write_file(os.path.join(temp_dir1, "foo.py"), "a = 123")
+        write_file(os.path.join(temp_dir1, "bar.py"), "b = 456")
+        loader = safeeval.ModuleLoader([temp_dir1, temp_dir2])
+        module = loader.eval("""
+from foo import a
+from bar import b
+""")
+        self.assertEquals(module.a, 123)
+        self.assertEquals(module.b, 456)
+
     def test_missing_import(self):
-        loader = safeeval.ModuleLoader(self.make_temp_dir())
+        loader = safeeval.ModuleLoader([self.make_temp_dir()])
         self.assertRaises(ImportError, lambda: loader.eval("import foo"))
 
     def test_add_module(self):

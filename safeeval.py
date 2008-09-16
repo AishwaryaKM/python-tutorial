@@ -154,9 +154,9 @@ def safe_builtins():
 
 class ModuleLoader(object):
 
-    def __init__(self, source_dir, eval_func=safe_eval):
+    def __init__(self, search_path, eval_func=safe_eval):
         self._modules = {}
-        self._dir = source_dir
+        self._paths = search_path
         self._eval_func = eval_func
         self._env = Environment()
         self._env.set_importer(self._import_module)
@@ -180,8 +180,13 @@ class ModuleLoader(object):
             parent_module = None
             top_module = None
 
-        filenames = (os.path.join(self._dir, "/".join(path) + ".py"),
-                     os.path.join(self._dir, "/".join(path), "__init__.py"))
+        # Python's normal importer is stricter than this.
+        filenames = (
+            filename
+            for search_dir in self._paths
+            for filename in (
+                os.path.join(search_dir, "/".join(path) + ".py"),
+                os.path.join(search_dir, "/".join(path), "__init__.py")))
         for filename in filenames:
             if os.path.exists(filename):
                 module = self.load_file(filename)
