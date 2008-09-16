@@ -21,6 +21,7 @@ import unittest
 
 import safeeval
 import tempdir_test
+import traceback
 
 
 def write_file(filename, data):
@@ -283,6 +284,22 @@ from foo.qux.bar import a as x
         # The interface is not complete yet:
         self.assertRaises(AssertionError,
                           lambda: loader.add_module("foo.bar", Module()))
+
+    def test_using_filename(self):
+        for use_filename in (False, True):
+            execfunc = safeeval.Evaluator(use_filename=use_filename,
+                                          warn_only=False).exec_code
+            loader = safeeval.ModuleLoader(None, eval_func=execfunc)
+            filename = os.path.join(self.make_temp_dir(), "foo.py")
+            write_file(filename, "raise Exception()")
+            try:
+                loader.load_file(filename)
+            except:
+                trace = traceback.format_exc()
+                expected = 'File "%s", line 1,' % filename
+                self.assertEquals(expected in trace, use_filename)
+            else:
+                self.fail("Expected an exception")
 
 
 if __name__ == "__main__":

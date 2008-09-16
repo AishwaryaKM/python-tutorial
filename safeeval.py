@@ -68,29 +68,50 @@ class Environment(object):
         self._module.__dict__["__import__"] = import_wrapper
 
 
-def safe_eval(source_code, builtins):
-    # The Reference Manual for Python 2.5 says:
-    # "As a side effect, an implementation may insert additional keys
-    # into the dictionaries given besides those corresponding to
-    # variable names set by the executed code. For example, the
-    # current implementation may add a reference to the dictionary of
-    # the built-in module __builtin__ under the key __builtins__ (!)."
-    # - http://docs.python.org/ref/exec.html
-    # This means we cannot let the caller provide its own environment
-    # dictionary, because it might leave the __builtins__ slot empty
-    # and Python would fill it out with the default, giving the caller
-    # access to all the real builtins.
-    assert type(source_code) is str
-    assert type(builtins) is Environment
-    module = types.ModuleType("__safe_eval_module__")
-    module.__dict__["__builtins__"] = builtins._module
-    tree = compiler.parse(source_code)
-    global_vars, bindings = varbindings.annotate(tree)
-    log = pycheck.check(tree, bindings)
-    if len(log) > 0:
-        raise VerifyError(log, source_code)
-    exec source_code in module.__dict__
-    return module
+class Evaluator(object):
+
+    # This allows two unsafe modes:
+    # - use_filename: This is unsafe because it allows an arbitrary
+    #   filename to be attached to a Python code object, and the
+    #   interpreter will open the named file when formatting a
+    #   traceback.
+    # - warn_only: This converts the checks' errors to warnings.
+    def __init__(self, use_filename, warn_only):
+        self._use_filename = use_filename
+        self._warn_only = warn_only
+
+    def exec_code(self, source_code, builtins, filename=None):
+        if not self._use_filename or filename is None:
+            filename = "<string>"
+        # The Reference Manual for Python 2.5 says:
+        # "As a side effect, an implementation may insert additional keys
+        # into the dictionaries given besides those corresponding to
+        # variable names set by the executed code. For example, the
+        # current implementation may add a reference to the dictionary of
+        # the built-in module __builtin__ under the key __builtins__ (!)."
+        # - http://docs.python.org/ref/exec.html
+        # This means we cannot let the caller provide its own environment
+        # dictionary, because it might leave the __builtins__ slot empty
+        # and Python would fill it out with the default, giving the caller
+        # access to all the real builtins.
+        assert type(source_code) is str
+        assert type(builtins) is Environment
+        module = types.ModuleType("__safe_eval_module__")
+        module.__dict__["__builtins__"] = builtins._module
+        tree = compiler.parse(source_code)
+        global_vars, bindings = varbindings.annotate(tree)
+        log = pycheck.check(tree, bindings)
+        if len(log) > 0:
+            if self._warn_only:
+                print VerifyError(log, source_code)
+            else:
+                raise VerifyError(log, source_code)
+        code = compile(source_code, filename, "exec")
+        exec code in module.__dict__
+        return module
+
+
+safe_eval = Evaluator(use_filename=False, warn_only=False).exec_code
 
 
 def read_file(filename):
@@ -103,9 +124,10 @@ def read_file(filename):
 
 class ModuleLoader(object):
 
-    def __init__(self, source_dir):
+    def __init__(self, source_dir, eval_func=safe_eval):
         self._modules = {}
         self._dir = source_dir
+        self._eval_func = eval_func
         self._env = Environment()
         self._env.set_importer(self._import_module)
 
@@ -154,7 +176,7 @@ class ModuleLoader(object):
             return module
 
     def load_file(self, filename):
-        return self.eval(read_file(filename))
+        return self.eval(read_file(filename), filename)
 
-    def eval(self, source):
-        return safe_eval(source, self._env)
+    def eval(self, source, filename=None):
+        return self._eval_func(source, self._env, filename)
