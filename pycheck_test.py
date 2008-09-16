@@ -345,6 +345,35 @@ __foo_ = x
 _foo__ = x
 """)
 
+        self.check(["object", "C", "Suspicious", "type", "do_something"], """
+class C(object):
+    pass
+class Suspicious(object):
+    def method1(self):
+        # Assignments to __class__ allow an object to change its type
+        # permanently or temporarily, so we need to block this,
+        # because some code can rely on checking types of objects.
+        assert type(self) is Suspicious # This starts off as true
+        self.__class__ = C # FAIL: SpecialAttr
+        assert type(self) is C # This is now true
+        do_something(self) # This might check the object's type
+        # Change type back
+        self.__class__ = Suspicious # FAIL: SpecialAttr
+    def method2(self):
+        # Also block read and write access to any double-double underscore
+        # attribute in case it produces special behaviour.
+        self.__mightbespecial__      # FAIL: SpecialAttr
+        self.__mightbespecial__ = 1  # FAIL: SpecialAttr
+        self.__mightbespecial__ += 1 # FAIL: SpecialAttr, SpecialAttr
+        # This includes blocking __init__ and __dict__.  These are not
+        # known to be problematic, but we will block them to err on
+        # the side of caution until a use case is found.
+        self.__init__     # FAIL: SpecialAttr
+        self.__init__ = 1 # FAIL: SpecialAttr
+        self.__dict__     # FAIL: SpecialAttr
+        self.__dict__ = 1 # FAIL: SpecialAttr
+""")
+
         self.check(["expr", "env"], """
 exec expr in env # FAIL: Exec
 """)

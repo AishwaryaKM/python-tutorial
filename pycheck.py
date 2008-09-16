@@ -37,6 +37,15 @@ def find_all(node, node_type):
     return got
 
 
+def find_attribute_assignments(tree):
+    for node in find_all(tree, ast.AssAttr):
+        yield node, node.expr, node.attrname
+    for node in find_all(tree, ast.AugAssign):
+        # In this lvalue context, Getattr is really Getattr + Setattr.
+        if isinstance(node.node, ast.Getattr):
+            yield node, node.node.expr, node.node.attrname
+
+
 def is_private_attr(name):
     return (name.startswith("_") or
             name.startswith("func_") or
@@ -49,6 +58,10 @@ def is_special_var(name):
         return False
     else:
         return name.startswith("__") and name.endswith("__")
+
+
+def is_special_attr(name):
+    return name.startswith("__") and name.endswith("__")
 
 
 def check(tree, bindings):
@@ -64,18 +77,17 @@ def check(tree, bindings):
                     binding = defn.code.environ.lookup(defn.argnames[0])
                     if not binding.is_assigned:
                         binding.is_self_var = True
-    for node in find_all(tree, ast.AssAttr):
-        if not varbindings.map_node(node.expr).is_self_var():
+    for node, expr_node, attr_name in find_attribute_assignments(tree):
+        if not varbindings.map_node(expr_node).is_self_var():
             log.append(("SetAttr", node))
-    for node in find_all(tree, ast.AugAssign):
-        # In this lvalue context, Getattr is really Getattr + Setattr.
-        if isinstance(node.node, ast.Getattr):
-            if not varbindings.map_node(node.node.expr).is_self_var():
-                log.append(("SetAttr", node))
+        elif is_special_attr(attr_name):
+            log.append(("SpecialAttr", node))
     for node in find_all(tree, ast.Getattr):
         if (not varbindings.map_node(node.expr).is_self_var() and
             is_private_attr(node.attrname)):
             log.append(("GetAttr", node))
+        elif is_special_attr(node.attrname):
+            log.append(("SpecialAttr", node))
     for node in find_all(tree, (ast.Print, ast.Printnl)):
         log.append(("Print", node))
     for node in find_all(tree, ast.Exec):
