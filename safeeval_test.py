@@ -273,6 +273,17 @@ from foo.qux.bar import a as x
         loader = safeeval.ModuleLoader(self.make_temp_dir())
         self.assertRaises(ImportError, lambda: loader.eval("import foo"))
 
+    def test_add_module(self):
+        class Module(object):
+            foo = 123
+        loader = safeeval.ModuleLoader(None)
+        loader.add_module("baz", Module())
+        module = loader.eval("from baz import foo")
+        self.assertEquals(module.foo, 123)
+        # The interface is not complete yet:
+        self.assertRaises(AssertionError,
+                          lambda: loader.add_module("foo.bar", Module()))
+
 
 if __name__ == "__main__":
     unittest.main()

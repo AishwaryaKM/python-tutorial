@@ -109,6 +109,11 @@ class ModuleLoader(object):
         self._env = Environment()
         self._env.set_importer(self._import_module)
 
+    def add_module(self, name, module):
+        # We don't handle compound module names yet.
+        assert "." not in name
+        self._modules[name] = (module, module)
+
     def _import_path(self, path):
         assert len(path) > 0
         name = ".".join(path)
