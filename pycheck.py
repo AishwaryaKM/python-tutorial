@@ -53,11 +53,15 @@ def is_private_attr(name):
             name.startswith("gi_"))
 
 
+allowed_vars = frozenset(["__init__",
+                          "__getitem__", "__setitem__", "__delitem__",
+                          "__contains__", "__len__", "__iter__",
+                          "__str__", "__repr__",
+                          "__add__", "__sub__", "__iadd__", "__isub__"])
+
 def is_special_var(name):
-    if name == "__init__":
-        return False
-    else:
-        return name.startswith("__") and name.endswith("__")
+    return (name not in allowed_vars and
+            name.startswith("__") and name.endswith("__"))
 
 
 def is_special_attr(name):

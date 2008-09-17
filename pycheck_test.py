@@ -345,6 +345,34 @@ __foo_ = x
 _foo__ = x
 """)
 
+        self.check(["object", "C", "False"], """
+class C(object):
+    def __getitem__(self, name):
+        return 1
+    def __setitem__(self, name, value):
+        pass
+    def __delitem__(self, name):
+        pass
+    def __contains__(self, name):
+        return False
+    def __len__(self):
+        return 0
+    def __iter__(self):
+        yield 123
+    def __str__(self):
+        return "foo"
+    def __repr__(self):
+        return "foo"
+    def __add__(self, other):
+        return 1
+    def __sub__(self, other):
+        return 1
+    def __iadd__(self, other):
+        return 1
+    def __isub__(self, other):
+        return 1
+""")
+
         self.check(["object", "C", "Suspicious", "type", "do_something"], """
 class C(object):
     pass
