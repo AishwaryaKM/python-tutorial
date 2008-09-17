@@ -482,7 +482,21 @@ x._y = 1
         stream = StringIO.StringIO()
         pycheck.main([filename], stream)
         self.assertEquals(stream.getvalue(),
-                          "%s:2: SetAttr\n  x._y = 1\n" % filename)
+                          "%s:2: SetAttr, in <module>\n  x._y = 1\n" % filename)
+
+    def test_formatting_context(self):
+        temp_dir = self.make_temp_dir()
+        filename = os.path.join(temp_dir, "foo.py")
+        write_file(filename, """
+class Class:
+    def method(self):
+        x._y = 1
+""")
+        stream = StringIO.StringIO()
+        pycheck.main([filename], stream)
+        self.assertEquals(
+            stream.getvalue(),
+            "%s:4: SetAttr, in Class.method\n  x._y = 1\n" % filename)
 
 
 if __name__ == "__main__":

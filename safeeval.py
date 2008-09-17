@@ -29,9 +29,10 @@ class VerifyError(Exception):
     # Is it a good idea to include the failed parts of the source code
     # by default?  It might expose source code that is intended to be
     # concealed.
-    def __init__(self, log, source_code, filename):
+    def __init__(self, log, tree, source_code, filename):
         self._source_code = source_code
         self._log = log
+        self._tree = tree
         self._filename = filename
 
     def __str__(self):
@@ -40,7 +41,8 @@ class VerifyError(Exception):
         def get_line(lineno):
             return lines[lineno - 1]
         return "".join("\n" + message for message in
-                       pycheck.format_log(self._log, get_line, self._filename))
+                       pycheck.format_log(self._log, self._tree, get_line,
+                                          self._filename))
 
 
 class Environment(object):
@@ -104,9 +106,9 @@ class Evaluator(object):
         log = pycheck.check(tree, bindings)
         if len(log) > 0:
             if self._warn_only:
-                print VerifyError(log, source_code, filename)
+                print VerifyError(log, tree, source_code, filename)
             else:
-                raise VerifyError(log, source_code, filename)
+                raise VerifyError(log, tree, source_code, filename)
         for var_name, binding in sorted(global_vars.iteritems()):
             if not binding.is_assigned:
                 assert binding.is_read

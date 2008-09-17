@@ -123,7 +123,7 @@ def func():
 """, safeeval.Environment())
         except safeeval.VerifyError, exn:
             self.assertEquals(str(exn), """
-line 3: SetAttr
+line 3: SetAttr, in func
   x.y = 1\
 """)
         else:

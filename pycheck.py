@@ -113,14 +113,50 @@ def check(tree, bindings):
     return log
 
 
-def format_log(log, get_source_line, filename):
+class ContextFinder(object):
+
+    def __init__(self, tree):
+        self._tree = tree
+        self._parents = None
+
+    def _make_parent_map(self):
+        parents = {}
+        def recurse(node, parent):
+            parents[node] = parent
+            for subnode in node.getChildNodes():
+                recurse(subnode, node)
+        recurse(self._tree, None)
+        return parents
+
+    def get_context_names(self, node):
+        if self._parents is None:
+            self._parents = self._make_parent_map()
+        while node is not None:
+            if isinstance(node, (ast.Function, ast.Class)):
+                yield node.name
+            node = self._parents[node]
+
+    def get_context_string(self, node):
+        names = list(self.get_context_names(node))
+        if len(names) == 0:
+            # <module> is what Python tracebacks contain.
+            return "<module>"
+        else:
+            # "." is not pedantically correct for naming nested functions.
+            return ".".join(reversed(names))
+
+
+def format_log(log, tree, get_source_line, filename):
+    context = ContextFinder(tree)
     if filename is None:
         prefix = "line "
     else:
         prefix = filename + ":"
-    for lineno, error in sorted((node.lineno, error) for error, node in log):
-        line = get_source_line(lineno).strip()
-        yield "%s%i: %s\n  %s" % (prefix, lineno, error, line)
+    for error, node in sorted(log, key=lambda (error, node): node.lineno):
+        line = get_source_line(node.lineno).strip()
+        where = context.get_context_string(node)
+        yield "%s%i: %s, in %s\n  %s" % (prefix, node.lineno, error,
+                                         where, line)
 
 
 def main(args, stdout):
@@ -130,7 +166,7 @@ def main(args, stdout):
         log = check(tree, bindings)
         def get_line(lineno):
             return linecache.getline(filename, lineno)
-        for message in format_log(log, get_line, filename):
+        for message in format_log(log, tree, get_line, filename):
             stdout.write(message + "\n")
 
 
