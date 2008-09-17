@@ -29,9 +29,13 @@ class VerifyError(Exception):
     # Is it a good idea to include the failed parts of the source code
     # by default?  It might expose source code that is intended to be
     # concealed.
-    def __init__(self, log, source_code):
+    def __init__(self, log, source_code, filename):
         self._source_code = source_code
         self._log = log
+        if filename is None:
+            self._prefix = "line "
+        else:
+            self._prefix = filename + ":"
 
     # TODO: allow a filename to be included in the output.
     def __str__(self):
@@ -40,7 +44,8 @@ class VerifyError(Exception):
         source_lines = self._source_code.split("\n")
         for error, node in self._log:
             line = source_lines[node.lineno - 1].strip()
-            parts.append("\nline %i: %s\n  %s" % (node.lineno, error, line))
+            parts.append("\n%s%i: %s\n  %s" %
+                         (self._prefix, node.lineno, error, line))
         return "".join(parts)
 
 
@@ -82,7 +87,9 @@ class Evaluator(object):
 
     def exec_code(self, source_code, builtins, filename=None):
         if not self._use_filename or filename is None:
-            filename = "<string>"
+            code_filename = "<string>"
+        else:
+            code_filename = filename
         # The Reference Manual for Python 2.5 says:
         # "As a side effect, an implementation may insert additional keys
         # into the dictionaries given besides those corresponding to
@@ -103,15 +110,15 @@ class Evaluator(object):
         log = pycheck.check(tree, bindings)
         if len(log) > 0:
             if self._warn_only:
-                print VerifyError(log, source_code)
+                print VerifyError(log, source_code, filename)
             else:
-                raise VerifyError(log, source_code)
+                raise VerifyError(log, source_code, filename)
         for var_name, binding in sorted(global_vars.iteritems()):
             if not binding.is_assigned:
                 assert binding.is_read
                 if var_name not in builtins._module.__dict__:
-                    print filename, "unbound:", var_name
-        code = compile(source_code, filename, "exec")
+                    print code_filename, "unbound:", var_name
+        code = compile(source_code, code_filename, "exec")
         exec code in module.__dict__
         return module
 
