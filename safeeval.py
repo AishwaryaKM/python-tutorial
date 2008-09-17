@@ -32,21 +32,15 @@ class VerifyError(Exception):
     def __init__(self, log, source_code, filename):
         self._source_code = source_code
         self._log = log
-        if filename is None:
-            self._prefix = "line "
-        else:
-            self._prefix = filename + ":"
+        self._filename = filename
 
-    # TODO: allow a filename to be included in the output.
     def __str__(self):
-        parts = []
-        # Could use something like linecache here.
-        source_lines = self._source_code.split("\n")
-        for error, node in self._log:
-            line = source_lines[node.lineno - 1].strip()
-            parts.append("\n%s%i: %s\n  %s" %
-                         (self._prefix, node.lineno, error, line))
-        return "".join(parts)
+        # Could use something like linecache here, except it uses filenames.
+        lines = self._source_code.split("\n")
+        def get_line(lineno):
+            return lines[lineno - 1]
+        return "".join("\n" + message for message in
+                       pycheck.format_log(self._log, get_line, self._filename))
 
 
 class Environment(object):

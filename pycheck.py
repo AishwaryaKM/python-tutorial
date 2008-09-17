@@ -113,15 +113,25 @@ def check(tree, bindings):
     return log
 
 
+def format_log(log, get_source_line, filename):
+    if filename is None:
+        prefix = "line "
+    else:
+        prefix = filename + ":"
+    for lineno, error in sorted((node.lineno, error) for error, node in log):
+        line = get_source_line(lineno).strip()
+        yield "%s%i: %s\n  %s" % (prefix, lineno, error, line)
+
+
 def main(args, stdout):
     for filename in args:
         tree = compiler.parseFile(filename)
         global_vars, bindings = varbindings.annotate(tree)
         log = check(tree, bindings)
-        for error, node in log:
-            line = linecache.getline(filename, node.lineno).strip()
-            stdout.write("%s:%i: %s\n  %s\n"
-                         % (filename, node.lineno, error, line))
+        def get_line(lineno):
+            return linecache.getline(filename, lineno)
+        for message in format_log(log, get_line, filename):
+            stdout.write(message + "\n")
 
 
 if __name__ == "__main__":
