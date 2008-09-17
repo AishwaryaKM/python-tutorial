@@ -345,9 +345,10 @@ __foo_ = x
 _foo__ = x
 """)
 
-        self.check(["__name__", "__all__", "main"], """
+        self.check(["__name__", "__all__", "__version__", "main"], """
 # These variables are used in standard idioms.
 __all__ = ["function_name", "ClassName"]
+__version__ = "1.2.3"
 if __name__ == "__main__":
     main()
 """)
