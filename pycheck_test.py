@@ -345,6 +345,13 @@ __foo_ = x
 _foo__ = x
 """)
 
+        self.check(["__name__", "__all__", "main"], """
+# These variables are used in standard idioms.
+__all__ = ["function_name", "ClassName"]
+if __name__ == "__main__":
+    main()
+""")
+
         self.check(["object", "C", "False"], """
 class C(object):
     def __getitem__(self, name):
