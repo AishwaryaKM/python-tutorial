@@ -61,7 +61,7 @@ allowed_vars = frozenset([
     "__str__", "__repr__",
     "__add__", "__sub__", "__iadd__", "__isub__",
     # Global variables
-    "__name__", "__all__", "__version__",
+    "__name__", "__all__", "__version__", "__debug__",
     ])
 
 def is_special_var(name):

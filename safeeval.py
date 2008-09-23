@@ -140,8 +140,10 @@ def type_is(obj, ty):
 
 def _safesuper(obj, klass, attrname):
     assert type(attrname) is str
-    assert not pycheck.is_special_attr(attrname)
-    assert type(klass) is type # Make sure it's not a tuple
+    assert (not pycheck.is_special_attr(attrname)
+            or attrname == "__init__"), attrname
+    # Make sure klass is not a tuple before isinstance check
+    assert type(klass) is type or type(klass) is types.ClassType, klass
     assert isinstance(obj, klass)
     method = getattr(klass, attrname)
     def bound_method(*args, **kwargs):

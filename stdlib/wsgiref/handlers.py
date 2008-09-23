@@ -469,8 +469,8 @@ class CGIHandler(BaseCGIHandler):
     wsgi_run_once = True
 
     def __init__(self):
-        BaseCGIHandler.__init__(
-            self, sys.stdin, sys.stdout, sys.stderr, dict(os.environ.items()),
+        safesuper(self, BaseCGIHandler, "__init__")(
+            sys.stdin, sys.stdout, sys.stderr, dict(os.environ.items()),
             multithread=False, multiprocess=True
         )
 
