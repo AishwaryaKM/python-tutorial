@@ -73,6 +73,27 @@ def is_special_attr(name):
     return name.startswith("__") and name.endswith("__")
 
 
+def check_safesuper(tree, bindings, log):
+    acceptable_uses = set()
+    for call in find_all(tree, ast.CallFunc):
+        if isinstance(call.node, ast.Name):
+            binding = varbindings.get_only(call.node.bindings)
+            if (binding.is_global and
+                binding.name == "safesuper" and
+                len(call.args) >= 1 and
+                varbindings.map_node(call.args[0]).is_self_var()):
+                acceptable_uses.add(call.node)
+    for node in find_all(tree, ast.Name):
+        binding = varbindings.get_only(node.bindings)
+        if binding.name == "safesuper":
+            if binding.is_global:
+                if node not in acceptable_uses:
+                    log.append(("Super", node))
+            else:
+                # Shadowing is not allowed.
+                log.append(("SuperShadowed", node))
+
+
 def check(tree, bindings):
     log = []
     for class_node in find_all(tree, ast.Class):
@@ -110,6 +131,7 @@ def check(tree, bindings):
             assert len(binding.references) > 0
             for var_ref in binding.references:
                 log.append(("SpecialVar", var_ref.node))
+    check_safesuper(tree, bindings, log)
     return log
 
 

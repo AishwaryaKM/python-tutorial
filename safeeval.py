@@ -131,10 +131,22 @@ def read_file(filename):
 
 
 def safe_hasattr(obj, attrname):
+    assert type(attrname) is str
     return not pycheck.is_private_attr(attrname) and hasattr(obj, attrname)
 
 def type_is(obj, ty):
     return type(obj) is ty
+
+
+def _safesuper(obj, klass, attrname):
+    assert type(attrname) is str
+    assert not pycheck.is_special_attr(attrname)
+    assert type(klass) is type # Make sure it's not a tuple
+    assert isinstance(obj, klass)
+    method = getattr(klass, attrname)
+    def bound_method(*args, **kwargs):
+        return method(obj, *args, **kwargs)
+    return bound_method
 
 
 def safe_builtins():
@@ -148,11 +160,20 @@ def safe_builtins():
                  "len",
                  "min", "max",
                  "isinstance",
+                 "object",
                  ):
         yield name, __builtins__[name]
     yield "hasattr", safe_hasattr
     # non-standard
     yield "type_is", type_is
+
+
+def safe_environment():
+    env = Environment()
+    for name, value in safe_builtins():
+        env.bind(name, value)
+    env.bind("safesuper", _safesuper)
+    return env
 
 
 class ModuleLoader(object):
@@ -161,10 +182,8 @@ class ModuleLoader(object):
         self._modules = {}
         self._paths = search_path
         self._eval_func = eval_func
-        self._env = Environment()
+        self._env = safe_environment()
         self._env.set_importer(self._import_module)
-        for name, value in safe_builtins():
-            self._env.bind(name, value)
 
     def add_module(self, name, module):
         # We don't handle compound module names yet.

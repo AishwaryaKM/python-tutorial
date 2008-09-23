@@ -199,6 +199,23 @@ from foo.bar2 import baz as quux, bazz as quuux
         else:
             self.fail("Expected TypeError")
 
+    def test_safesuper(self):
+        code = """
+class C(object):
+    def _method(self, arg):
+        return "foo%i" % arg
+    def f(self):
+        return self._method(1)
+
+class D(C):
+    def _method(self, arg):
+        return safesuper(self, C, "_method")(arg + 1) + "bar"
+
+x = D().f()
+"""
+        m = safeeval.safe_eval(code, safeeval.safe_environment())
+        self.assertEquals(m.x, "foo2bar")
+
 
 class ModuleLoaderTest(tempdir_test.TempDirTestCase):
 

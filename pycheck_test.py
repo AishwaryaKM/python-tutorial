@@ -414,6 +414,22 @@ class Suspicious(object):
 exec expr in env # FAIL: Exec
 """)
 
+        self.check(["safesuper", "object", "C", "D", "E"], """
+class D(C):
+    def f(self, other):
+        safesuper(self, D, "f")()
+        safesuper(other, D, "f")() # FAIL: Super
+        safesuper() # FAIL: Super
+        safesuper # FAIL: Super
+class E(object):
+    # Class scope behaves strangely.
+    x = safesuper # FAIL: SuperShadowed
+    safesuper = 1
+# Assignment does not need to be blocked because the function does not
+# receive any sensitive objects.
+safesuper = 1
+""")
+
     @TODO_test
     def test_check_3(self):
         self.check(["Exception", "object"], """
