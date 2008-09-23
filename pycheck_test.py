@@ -97,7 +97,7 @@ class C2(object):
         badger._a
 """)
 
-        self.check(["object", "C", "func"], """
+        self.check(["object", "C", "func", "staticmethod"], """
 class C(object):
     @staticmethod
     def method(self):

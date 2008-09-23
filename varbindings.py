@@ -245,6 +245,9 @@ class HandleFunction(Node):
         pass
 
     def annotate(self, scope):
+        if self._node.decorators is not None:
+            for expr in self._node.decorators.nodes:
+                map_node(expr).annotate(scope)
         scope.local_env.record(self._node, self._node.name, assigns=True,
                                reads=False)
         annotate_function(self._node, scope)

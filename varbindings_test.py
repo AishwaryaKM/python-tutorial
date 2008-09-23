@@ -506,6 +506,13 @@ finally:
 """
         self.match_up_bindings(source)
 
+        source = """
+@decorator # VAR: decorator:d
+def func(): # VAR: func:f
+    pass
+"""
+        self.match_up_bindings(source)
+
     def test_listing_variable_references(self):
         source = """
 x = 1
