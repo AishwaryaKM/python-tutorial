@@ -156,7 +156,7 @@ def safe_builtins():
                  "ImportError", "IOError", "NameError", "KeyError",
                  "AttributeError", "TypeError", "IndexError",
                  "StopIteration",
-                 "dict", "list", "tuple", "int", "str",
+                 "dict", "list", "tuple", "int", "str", "basestring",
                  "chr", "ord",
                  "range", "xrange",
                  "len",
