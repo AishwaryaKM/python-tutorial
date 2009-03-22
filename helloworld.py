@@ -1,9 +1,28 @@
+
+# Hack the interpreter around a bit.  Is there a neater way of doing this?
+
+import os
+import sys
+import types
+
+base = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(1, os.path.join(base, "cappython"))
+sys.path.insert(1, os.path.join(base, "pypy-dist"))
+
+# pypy's parser seems to import the cpython parser, hopefully it does
+# not use it
+sys.modules["parser"] = types.ModuleType("parser")
+from pypy.module import recparser as parser
+sys.modules["parser"] = parser
+
+#/Hack
+
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-import cappython.pycheck
+import pycheck
 import cgi
 import functools
 import os
@@ -66,8 +85,7 @@ class MainPage(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
-application = webapp.WSGIApplication([('/', MainPage),
-                                      ('/sign', Guestbook)],
+application = webapp.WSGIApplication([('/', MainPage),],
                                      debug=True)
 
 

@@ -17,7 +17,6 @@ def main(prog, argv):
     dest = os.path.join(base, "cappython")
     subprocess.check_call(
         ["bzr", "branch", "lp:~mrs/cappython/experimental", dest])
-    subprocess.check_call(["touch", os.path.join(dest, "__init__.py")])
     subprocess.check_call(["svn", "co", "http://codespeak.net/svn/pypy/dist",
                            os.path.join(base, "pypy-dist")])
 
