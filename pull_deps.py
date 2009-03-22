@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 
+
 def main(prog, argv):
     parser = optparse.OptionParser(__doc__, prog=prog)
     options, args = parser.parse_args(argv)
@@ -19,6 +20,7 @@ def main(prog, argv):
     subprocess.check_call(["touch", os.path.join(dest, "__init__.py")])
     subprocess.check_call(["svn", "co", "http://codespeak.net/svn/pypy/dist",
                            os.path.join(base, "pypy-dist")])
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[0], sys.argv[1:]))

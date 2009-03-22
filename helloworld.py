@@ -1,21 +1,18 @@
+from google.appengine.api import users
+from google.appengine.ext import db
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp.util import run_wsgi_app
+import cappython.pycheck
+import cgi
+import functools
 import os
 
-from google.appengine.ext.webapp import template
-
-import cgi
-
-from google.appengine.api import users
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
-from google.appengine.ext import db
-
-import functools
-
-import cappython.pycheck
 
 class UserTag(db.Model):
     user = db.UserProperty()
     tag = db.StringProperty()
+
 
 def has_tag(tag):
     user = users.get_current_user()
@@ -26,6 +23,7 @@ def has_tag(tag):
         assert users.is_current_user_admin()
         db.put(UserTag(user=user, tag=tag))
     return result
+
     
 def requires_tag(tag):
     def decorator(func):
@@ -49,6 +47,7 @@ def requires_tag(tag):
         return handler
     return decorator
 
+
 class MainPage(webapp.RequestHandler):
     
     @requires_tag("user")
@@ -71,8 +70,10 @@ application = webapp.WSGIApplication([('/', MainPage),
                                       ('/sign', Guestbook)],
                                      debug=True)
 
+
 def main():
-  run_wsgi_app(application)
+    run_wsgi_app(application)
+
 
 if __name__ == "__main__":
   main()
