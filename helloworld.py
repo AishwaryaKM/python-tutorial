@@ -8,13 +8,40 @@ import types
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(1, os.path.join(base, "cappython"))
 sys.path.insert(1, os.path.join(base, "pypy-dist"))
+os.linesep = "\n"
 
 # pypy's parser seems to import the cpython parser, hopefully it does
 # not use it
-sys.modules["parser"] = types.ModuleType("parser")
-from pypy.module import recparser as parser
+# sys.modules["parser"] = types.ModuleType("parser")
+# missing = ["parser", "py.compat.subprocess", "py.compat.doctest",
+#            "py.compat.optparse", "py.compat.textwrap"]
+missing = ["parser", "py", "py.compat.subprocess", "py.path",
+           "py.path.local", "py.io", "py.__.io.terminalwriter"]
+for name in missing:
+    sys.modules[name] = types.ModuleType(name)
+sys.modules["py"].path = sys.modules["py.path"]
+sys.modules["py.path"].local = sys.modules["py.path.local"]
+# import py.compat.subprocess
+# import py.compat.doctest
+# import py.compat.optparse
+# import py.compat.textwrap
+import pypy.rlib.streamio
+class FakeStream(object):
+    def __init__(self, data):
+        self._data = data
+    def readall(self):
+        return self._data
+    def close(self):
+        pass
+def fake_open_file_as_stream(path, *args, **kwargs):
+    fh = open(path)
+    try:
+        return FakeStream(fh.read())
+    finally:
+        fh.close()
+pypy.rlib.streamio.open_file_as_stream = fake_open_file_as_stream
+import myparser as parser
 sys.modules["parser"] = parser
-
 #/Hack
 
 from google.appengine.api import users
