@@ -14,7 +14,8 @@ var ws = new dojo.rpc.JsonService({
         "serviceType": "JSON-RPC",
         "serviceURL": "/ws",
         "timeout": 7200,
-        "methods":[{"name": "validate", "parameters": [{"name": "code"}]}]
+        "methods":[{"name": "validate", "parameters": [{"name": "code"}]},
+                   {"name": "execute", "parameters": [{"name": "code"}]}]
 });
 
 var validate = function()
@@ -23,13 +24,40 @@ var validate = function()
   ws.validate(code).addCallback(function (result) {
     alert("Validation results: " + result)});
 };
+
+var execute = function()
+{
+  var code = document.getElementById("code").value;
+  ws.execute(code).addCallback(function (result) {
+    alert(result)});
+};
+
+var fill_in_example = function()
+{
+  document.getElementById("code").value = 
+    'class Foo(object):\n' +
+    '  def __init__(self, data):\n' +
+    '    self._data = data\n' +
+    '  def bar(self):\n' +
+    '    write(self._data)\n' +
+    '\n' +
+    'Foo("wibble: " + __name__).bar()\n';
+};
     </script>
   </head>
   <body>
     <div id="login"><a href="{{ url }}">{{ url_linktext }}</a></div>
     <h1>Python Tutorial</h1>
-    <p>Welcome</p>
+    <p>Welcome.  This is still a work in progress - please do not use
+    up all of my CPU quota for today.  The text area is for a somewhat
+    safe subset of python code.  The validate button checks whether it
+    is safe enough to run.  The execute button will run it.  The only
+    side effects which can be effected by the code is to send a string
+    into the write() function as per the example.  Error reporting is
+    non-existant at the moment (look for tracebacks in firebug).</p>
     <textarea id="code" cols="79" rows="25"></textarea>
     <button type="button" onclick="validate()">Validate</button>
+    <button type="button" onclick="execute()">Execute</button>
+    <button type="button" onclick="fill_in_example()">Fill in example</button>
   </body>
 </html>

@@ -16,8 +16,11 @@ import pycheck2 as pycheck
 import transformer2 as transformer
 import varbindings2 as varbindings
 import linecache
+import safeeval2 as safeeval
 
 import simplejson
+
+from StringIO import StringIO
 
 
 class UserTag(db.Model):
@@ -54,7 +57,6 @@ def make_user_template(uri):
         'url_linktext': url_linktext,
         }
     return template_values
-    
 
 
 def requires_tag(tag):
@@ -84,19 +86,10 @@ class MainPage(webapp.RequestHandler):
             self.response.out.write(template.render(path, template_values))
 
 
-@requires_tag("validate")
-def cappython_validate(string):
-    tree = transformer.parse(string.encode("utf-8") + "\n")
-    global_vars, bindings = varbindings.annotate(tree)
-    log = pycheck.check(tree, bindings)
-    def get_line(lineno):
-        return "<getting of line %s not yet implemented>" % (lineno,)
-    return len(log) == 0
-#     for message in pycheck.format_log(log, tree, get_line, filename):
-#         stdout.write(message + "\n")
-#     return False
+def no_imports(name, fromlist):
+    raise ImportError("You are not yet allowed to import anything: " + name )
 
-    
+
 class WebService(webapp.RequestHandler):
 
     @requires_tag("validate")
@@ -104,22 +97,30 @@ class WebService(webapp.RequestHandler):
         tree = transformer.parse(string.encode("utf-8") + "\n")
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
-        def get_line(lineno):
-            return "<getting of line %s not yet implemented>" % (lineno,)
         return len(log) == 0
-    #     for message in pycheck.format_log(log, tree, get_line, filename):
-    #         stdout.write(message + "\n")
-    #     return False
+
+    @requires_tag("execute")
+    def cappython_run(self, string):
+        data = StringIO()
+        env = safeeval.safe_environment()
+        env.set_importer(no_imports)
+        def safe_write(string):
+            data.write(unicode(string, encoding="ascii").encode("utf-8"))
+        env.bind("write", safe_write)
+        safeeval.safe_eval(string.encode("utf-8") + "\n", env)
+        return data.getvalue().decode("utf-8")
 
     @requires_tag("user")
     def post(self):
         string = self.request.body.decode("utf-8")
         json = simplejson.loads(string)
-        assert json[u"method"] == u"validate", json[u"method"]
-        if self.cappython_validate(json[u"params"][0]):
-            response_data = {u"result": u"passed"}
-        else:
-            response_data = {u"result": u"failed"}
+        if json[u"method"] == u"validate":
+            if self.cappython_validate(json[u"params"][0]):
+                response_data = {u"result": u"passed"}
+            else:
+                response_data = {u"result": u"failed"}
+        elif json[u"method"] == u"execute":
+            response_data = self.cappython_run(json[u"params"][0])
         self.response.headers.add_header("Content-Type", 
                                          "application/json; charser=utf-8")
         self.response.out.write(simplejson.dumps(response_data).encode("utf-8"))
