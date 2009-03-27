@@ -1,11 +1,31 @@
 <html>
   <head>
+    <script src="/static/dojo-release-1.1.1-src/dojo/dojo.js"
+            djConfig="preventBackButtonFix: false"></script>
     <link type="text/css" rel="stylesheet" href="/static/main.css" />
     <title>Python Tutorial</title>
+    <script>
+dojo.require("dojo.rpc.JsonService");
+var ws = new dojo.rpc.JsonService({
+        "serviceType": "JSON-RPC",
+        "serviceURL": "/ws",
+        "timeout": 7200,
+        "methods":[{"name": "validate", "parameters": [{"name": "code"}]}]
+});
+
+var validate = function()
+{
+  var code = document.getElementById("code").value;
+  ws.validate(code).addCallback(function (result) {
+    alert("Validation results: " + result)});
+};
+    </script>
   </head>
   <body>
     <div id="login"><a href="{{ url }}">{{ url_linktext }}</a></div>
     <h1>Python Tutorial</h1>
     <p>Welcome</p>
+    <textarea id="code" cols="79" rows="25"></textarea>
+    <button type="button" onclick="validate()">Validate</button>
   </body>
 </html>

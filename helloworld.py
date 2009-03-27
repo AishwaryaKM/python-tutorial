@@ -1,58 +1,23 @@
 
-# Hack the interpreter around a bit.  Is there a neater way of doing this?
-
-import os
-import sys
-import types
-
-base = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(1, os.path.join(base, "cappython"))
-sys.path.insert(1, os.path.join(base, "pypy-dist"))
-os.linesep = "\n"
-
-# pypy's parser seems to import the cpython parser, hopefully it does
-# not use it
-# sys.modules["parser"] = types.ModuleType("parser")
-# missing = ["parser", "py.compat.subprocess", "py.compat.doctest",
-#            "py.compat.optparse", "py.compat.textwrap"]
-missing = ["parser", "py", "py.compat.subprocess", "py.path",
-           "py.path.local", "py.io", "py.__.io.terminalwriter"]
-for name in missing:
-    sys.modules[name] = types.ModuleType(name)
-sys.modules["py"].path = sys.modules["py.path"]
-sys.modules["py.path"].local = sys.modules["py.path.local"]
-# import py.compat.subprocess
-# import py.compat.doctest
-# import py.compat.optparse
-# import py.compat.textwrap
-import pypy.rlib.streamio
-class FakeStream(object):
-    def __init__(self, data):
-        self._data = data
-    def readall(self):
-        return self._data
-    def close(self):
-        pass
-def fake_open_file_as_stream(path, *args, **kwargs):
-    fh = open(path)
-    try:
-        return FakeStream(fh.read())
-    finally:
-        fh.close()
-pypy.rlib.streamio.open_file_as_stream = fake_open_file_as_stream
-import myparser as parser
-sys.modules["parser"] = parser
-#/Hack
 
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-import pycheck
+# import pycheck
 import cgi
 import functools
 import os
+import sys
+import logging
+
+import pycheck2 as pycheck
+import transformer2 as transformer
+import varbindings2 as varbindings
+import linecache
+
+import simplejson
 
 
 class UserTag(db.Model):
@@ -70,7 +35,7 @@ def has_tag(tag):
         db.put(UserTag(user=user, tag=tag))
     return result
 
-    
+
 def requires_tag(tag):
     def decorator(func):
         @functools.wraps(func)
@@ -112,7 +77,37 @@ class MainPage(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
-application = webapp.WSGIApplication([('/', MainPage),],
+@requires_tag("validate")
+def cappython_validate(string):
+    tree = transformer.parse(string.encode("utf-8") + "\n")
+    global_vars, bindings = varbindings.annotate(tree)
+    log = pycheck.check(tree, bindings)
+    def get_line(lineno):
+        return "<getting of line %s not yet implemented>" % (lineno,)
+    return len(log) == 0
+#     for message in pycheck.format_log(log, tree, get_line, filename):
+#         stdout.write(message + "\n")
+#     return False
+
+    
+class WebService(webapp.RequestHandler):
+
+    @requires_tag("user")
+    def post(self):
+        string = self.request.body.decode("utf-8")
+        json = simplejson.loads(string)
+        assert json[u"method"] == u"validate", json[u"method"]
+        if cappython_validate(json[u"params"][0]):
+            response_data = {u"result": u"passed"}
+        else:
+            response_data = {u"result": u"failed"}
+        self.response.headers.add_header("Content-Type", 
+                                         "application/json; charser=utf-8")
+        self.response.out.write(simplejson.dumps(response_data).encode("utf-8"))
+
+
+application = webapp.WSGIApplication([('/', MainPage),
+                                      ("/ws", WebService)],
                                      debug=True)
 
 

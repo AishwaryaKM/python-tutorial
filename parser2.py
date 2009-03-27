@@ -1,0 +1,45 @@
+from pythonparse2 import make_pyparser
+from tuplebuilder2 import TupleBuilder
+import symbol
+import token
+
+parser = make_pyparser("native")
+symbol_lookup = dict((num, getattr(symbol, name)) 
+                     for name, num in parser.symbols.iteritems()
+                     if not name.startswith(":"))
+tokens_by_name = dict((name, value) for value, name 
+                      in token.tok_name.iteritems())
+token_lookup = dict((num, tokens_by_name[name]) 
+                    for name, num in parser.tokens.iteritems()
+                    if name not in ("NULLTOKEN",))
+
+def pypy_parse(source, mode='exec', lineno=False):
+    builder = TupleBuilder(parser)
+    parser.parse_source(source, mode, builder)
+    return builder.stack[-1].as_tuple(lineno)
+
+int_map = {}
+int_map.update(symbol_lookup)
+int_map.update(token_lookup)
+
+def suite(source):
+    return source
+
+def _renumber(a):
+    return int_map[a]
+
+def _renumber_tree(a):
+    mapped = _renumber(a[0])
+    if type(a[1]) is tuple:
+        rest = list(_renumber_tree(x) for x in a[1:])
+    else:
+        rest = list(a[1:])
+    if symbol.sym_name.get(mapped) == "yield_stmt":
+        if symbol.sym_name.get(rest[0][0]) != "yield_expr":
+            rest = [tuple([symbol.yield_expr] + rest)]
+    return tuple([mapped] + rest)
+
+def ast2tuple(source, line_info=False):
+    r = pypy_parse(source, lineno=line_info)
+    r2 = _renumber_tree(r)
+    return r2
