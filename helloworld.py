@@ -27,6 +27,12 @@ class UserTag(db.Model):
 
 def has_tag(tag):
     user = users.get_current_user()
+    if not user:
+        return False
+    seen_tags = db.GqlQuery("SELECT * FROM UserTag "
+                            "WHERE user = :1 AND tag = 'seenn'", user)
+    if seen_tags.count() == 0:
+        db.put(UserTag(user=user, tag="seen"))
     user_tags = db.GqlQuery("SELECT * FROM UserTag "
                             "WHERE user = :1 AND tag = :2", user, tag)
     result = users.is_current_user_admin() or user_tags.count() > 0
@@ -36,6 +42,21 @@ def has_tag(tag):
     return result
 
 
+def make_user_template(uri):
+    if users.get_current_user():
+        url = users.create_logout_url(uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(uri)
+        url_linktext = 'Login'
+    template_values = {
+        'url': url,
+        'url_linktext': url_linktext,
+        }
+    return template_values
+    
+
+
 def requires_tag(tag):
     def decorator(func):
         @functools.wraps(func)
@@ -43,17 +64,8 @@ def requires_tag(tag):
             if has_tag(tag):
                 return func(self, *args, **kwargs)
             else:
-                if users.get_current_user():
-                    url = users.create_logout_url(self.request.uri)
-                    url_linktext = 'Logout'
-                else:
-                    url = users.create_login_url(self.request.uri)
-                    url_linktext = 'Login'
-                template_values = {
-                    'url': url,
-                    'url_linktext': url_linktext,
-                    }
                 path = os.path.join(os.path.dirname(__file__), 'index.html')
+                template_values = make_user_template(self.request.uri)
                 self.response.out.write(template.render(path, template_values))
         return handler
     return decorator
@@ -61,20 +73,15 @@ def requires_tag(tag):
 
 class MainPage(webapp.RequestHandler):
     
-    @requires_tag("user")
+    @requires_tag("seen")
     def get(self):
-        if users.get_current_user():
-          url = users.create_logout_url(self.request.uri)
-          url_linktext = 'Logout'
+        template_values = make_user_template(self.request.uri)
+        if has_tag("user"):
+            path = os.path.join(os.path.dirname(__file__), 'repl.html')
+            self.response.out.write(template.render(path, template_values))
         else:
-          url = users.create_login_url(self.request.uri)
-          url_linktext = 'Login'
-        template_values = {
-          'url': url,
-          'url_linktext': url_linktext,
-          }
-        path = os.path.join(os.path.dirname(__file__), 'repl.html')
-        self.response.out.write(template.render(path, template_values))
+            path = os.path.join(os.path.dirname(__file__), 'seen.html')
+            self.response.out.write(template.render(path, template_values))
 
 
 @requires_tag("validate")
@@ -92,12 +99,24 @@ def cappython_validate(string):
     
 class WebService(webapp.RequestHandler):
 
+    @requires_tag("validate")
+    def cappython_validate(self, string):
+        tree = transformer.parse(string.encode("utf-8") + "\n")
+        global_vars, bindings = varbindings.annotate(tree)
+        log = pycheck.check(tree, bindings)
+        def get_line(lineno):
+            return "<getting of line %s not yet implemented>" % (lineno,)
+        return len(log) == 0
+    #     for message in pycheck.format_log(log, tree, get_line, filename):
+    #         stdout.write(message + "\n")
+    #     return False
+
     @requires_tag("user")
     def post(self):
         string = self.request.body.decode("utf-8")
         json = simplejson.loads(string)
         assert json[u"method"] == u"validate", json[u"method"]
-        if cappython_validate(json[u"params"][0]):
+        if self.cappython_validate(json[u"params"][0]):
             response_data = {u"result": u"passed"}
         else:
             response_data = {u"result": u"failed"}
