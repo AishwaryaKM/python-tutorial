@@ -5,6 +5,12 @@ body {
 #account_status {
     float: right;
 }
-.pending {
+#account_status_pending {
     font-style: italic;
+}
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }

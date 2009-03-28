@@ -85,22 +85,28 @@ class MainPage(webapp.RequestHandler):
     
     @requires_tag("seen")
     def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'index.html')
         template_values = make_user_template(self.request.uri)
-        if has_tag("execute"):
-            path = os.path.join(os.path.dirname(__file__), 'repl.html')
-            self.response.out.write(template.render(path, template_values))
-        else:
-            path = os.path.join(os.path.dirname(__file__), 'seen.html')
-            self.response.out.write(template.render(path, template_values))
+        self.response.out.write(template.render(path, template_values))
 
 
 class LoginIframe(webapp.RequestHandler):
     
-    def get(self):
-        url = users.create_login_url("about:blank")
-        template_values = {"login_url": url,}
-        path = os.path.join(os.path.dirname(__file__), 'login.html')
-        self.response.out.write(template.render(path, template_values))
+    def get(self, action):
+        if action == "refresh":
+            path = os.path.join(os.path.dirname(__file__), 
+                                "account-refresh.html")
+            self.response.out.write(template.render(path, {}))
+        else:
+            if action == "login":
+                url = users.create_login_url("/account/refresh")
+            elif action == "logout":
+                url = users.create_logout_url("/account/refresh")
+            else:
+                raise NotImplemnetedError(action)
+            template_values = {"login_url": url}
+            path = os.path.join(os.path.dirname(__file__), 'account.html')
+            self.response.out.write(template.render(path, template_values))
 
 
 class CdnProxy(webapp.RequestHandler):
@@ -183,11 +189,12 @@ class WebService(webapp.RequestHandler):
         self.response.out.write(simplejson.dumps(result).encode("utf-8"))
 
 
-application = webapp.WSGIApplication([('/', MainPage),
-                                      ("/ws", WebService),
-                                      ("/cdn/(.*)", CdnProxy),
-                                      ("/login", LoginIframe)],
-                                     debug=True)
+application = webapp.WSGIApplication([
+        ('/', MainPage),
+        ("/ws", WebService),
+        ("/cdn/(.*)", CdnProxy),
+        ("/account/(login|logout|refresh)", LoginIframe)
+        ], debug=True)
 
 
 def main():
