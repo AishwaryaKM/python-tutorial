@@ -1,78 +1,87 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <title>Online Python Tutorial</title>
 
-    <script src="/cdn/dojo/1.2.3/dojo/dojo.js"
-            djConfig="preventBackButtonFix: false"></script>
-    <script src="/cdn/mootools/1.11/mootools-yui-compressed.js"></script>
-    <link href="/static/multibox/MultiBox/multibox/multibox.css" 
+    <script src="/cdn/dojo/1.2.3/dojo/dojo.js" type="text/javascript"></script>
+    <script src="/cdn/mootools/1.11/mootools-yui-compressed.js"
+	    type="text/javascript"></script>
+    <link href="/static/multibox/MultiBox/multibox/multibox.css"
           rel="stylesheet" type="text/css"/>
     <script src="/static/multibox/MultiBox/_common/js/mootools.js"
-	    type="text/javascript" ></script>
-    <script src="/static/overlay.js" type="text/javascript" ></script>
+	    type="text/javascript"></script>
+    <script src="/static/overlay.js" type="text/javascript"></script>
     <script src="/static/multibox/MultiBox/multibox/multibox.js"
 	    type="text/javascript"></script>
     <link type="text/css" rel="stylesheet" href="/static/main.css" />
-    <script src="/static/client.js"></script>
+    <script type="text/javascript" src="/static/client.js"></script>
   </head>
   <body>
-    <div id="account_status">
-      <div id="account_status_pending">Checking google account status...</div>
-      <div id="account_unknown" style="display: none;">
-	<a href="/account/login" rel="width:800,height:600" id="login_link" 
-	   class="mb_login" title="Login">Login</a>
-	<div class="multiBoxDesc login_link">Please log in using a
-	google account</div>
+    <div id="main_body">
+      <div id="account_status">
+	<div id="account_status_pending">Checking google account
+	status...</div>
+	<div id="account_unknown" style="display: none;">
+	  <a href="/account/login" rel="width:800,height:600" id="login_link"
+	     class="mb_login" title="Login">Login</a>
+	  <div class="multiBoxDesc login_link">Please log in using a
+	    google account</div>
+	</div>
+	<div id="account_known" style="display: none;">
+	  <a href="/account/logout" rel="width:800,height:600"
+	     id="logout_link_known" class="mb_logout_known"
+	     title="Logout">Logout</a>
+	  <div class="multiBoxDesc logout_link_known">Please wait while
+	    you are logged out...</div>
+	</div>
+	<div id="account_registered" style="display: none;">
+	  <a href="/account/logout" rel="width:800,height:600"
+	     id="logout_link_registered" class="mb_logout_registered"
+	     title="Logout">Logout (registered user)</a>
+	  <div class="multiBoxDesc logout_link_registered">Please wait
+	    while you are logged out...</div>
+	</div>
       </div>
-      <div id="account_known" style="display: none;">
-	<a href="/account/logout" rel="width:800,height:600"
-	   id="logout_link_known" class="mb_logout_known"
-	   title="Logout">Logout</a>
-	<div class="multiBoxDesc logout_link_known">Please wait while
-	you are logged out...</div>
+      <h1>Online Python Tutorial</h1>
+      <p>This is an <em>experimental</em> project aiming to provide an
+	interactive python interpreter to casual web visitors so that
+	they can familiarise themselves with the python programming
+	language.  It is not ready for general use so I recommend
+	visiting the
+	<a href="http://docs.python.org/tutorial/index.html">officlal
+	  python tutorial</a> instead, for now.</p>
+      <p>Until I am more confident about the security of the sandbox
+	and the resource requirements I am restricting access to
+	registered users who I know personally.  The code for the
+	Online Python Tutorial is a mess and not particularly
+	interesting (see CapPython, PyPy and dojo projects for the
+	interesting bits) but will be posted online eventually.</p>
+      <textarea id="code" cols="79" rows="25"></textarea>
+      <div>
+	<button type="button" onclick="validate()">Validate</button>
+	<button type="button" onclick="execute()">Execute</button>
+	<button type="button" onclick="fill_in_example()">Fill in
+	example</button>
       </div>
-      <div id="account_registered" style="display: none;">
-	<a href="/account/logout" rel="width:800,height:600"
-	id="logout_link_registered" class="mb_logout_registered"
-	title="Logout">Logout (registered user)</a>
-	<div class="multiBoxDesc logout_link_registered">Please wait
-	while you are logged out...</div>
-      </div>
+      <p>The Online Python Tutorial is hosted
+	on <a href="http://appengine.google.com/">Google App
+	Engine</a> [GAE] which provides free python web hosting on the
+	google infrastructure.  Users of this site can submit python
+	code from their browser to run on the google servers.  The
+	submitted code runs in a restricted execution environment to
+	protect the application and to protect users from each other.
+	At the moment submitted code must conform to the rules imposed
+	by
+	<a href="https://launchpad.net/cappython">CapPython</a> but
+	this restriction may be relaxed in the future.  No standard
+	library modules are available.  CapPython is written in pure
+	python but relies on the built-in python <code>parser</code>
+	module which is not available under GAE.  To work around this
+	the Online Python Tutorial uses a mostly complete Python 2.5
+	parser in pure-python taken from
+	the <a href="http://codespeak.net/pypy/">PyPy</a> project.</p>
     </div>
-    <h1>Online Python Tutorial</h1>
-    <p>This is an <em>experimental</em> project aiming to provide an
-    interactive python interpreter to casual web visitors so that they
-    can familiarise themselves with the python programming language.
-    It is not ready for general use so I recommend visiting the
-    <a href="http://docs.python.org/tutorial/index.html">officlal
-    python tutorial</a> instead, for now.</p>
-    <p>The Online Python Tutorial is hosted
-    on <a href="http://appengine.google.com/">Google App Engine</a>
-    [GAE] which provides free python web hosting on the google
-    infrastructure.  Users of this site can submit python code from
-    their browser to run on the google servers.  The submitted code
-    runs in a restricted execution environment to protect the
-    application and to protect users from each other.  At the moment
-    submitted code must conform to the rules imposed by
-    <a href="https://launchpad.net/cappython">CapPython</a> but this
-    restriction may be relaxed in the future.  No standard library
-    modules are available.  CapPython is written in pure python but
-    relies on the built-in python <code>parser</code> module which is
-    not available under GAE.  To work around this the Online Python
-    Tutorial uses a mostly complete Python 2.5 parser in pure-python
-    taken from the <a href="http://codespeak.net/pypy/">PyPy</a>
-    project.</p>
-    <p>Until I am more confident about the security of the sandbox and
-    the resource requirements I am restricting access to registered
-    users who I know personally.  The code for the Online Python
-    Tutorial is a mess and not particularly interesting (see
-    CapPython, PyPy and dojo projects for the interesting bits) but
-    will be posted online eventually.</p>
-    <textarea id="code" cols="79" rows="25"></textarea>
-    <p>
-      <button type="button" onclick="validate()">Validate</button>
-      <button type="button" onclick="execute()">Execute</button>
-      <button type="button" onclick="fill_in_example()">Fill in example</button>
-    </p>
   </body>
 </html>
