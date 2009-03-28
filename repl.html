@@ -1,9 +1,5 @@
 <html>
   <head>
-<!--     <script type="text/javascript"  -->
-<!-- 	    src="http://ajax.googleapis.com/ajax/libs/dojo/1.2/dojo/dojo.xd.js" -->
-<!--             djConfig="preventBackButtonFix: false"> -->
-    </script>
     <script src="/static/dojo/dojo/dojo.js"
             djConfig="preventBackButtonFix: false"></script>
     <link type="text/css" rel="stylesheet" href="/static/main.css" />
@@ -56,8 +52,10 @@ var fill_in_example = function()
     into the write() function as per the example.  Error reporting is
     non-existant at the moment (look for tracebacks in firebug).</p>
     <textarea id="code" cols="79" rows="25"></textarea>
-    <button type="button" onclick="validate()">Validate</button>
-    <button type="button" onclick="execute()">Execute</button>
-    <button type="button" onclick="fill_in_example()">Fill in example</button>
+    <p>
+      <button type="button" onclick="validate()">Validate</button>
+      <button type="button" onclick="execute()">Execute</button>
+      <button type="button" onclick="fill_in_example()">Fill in example</button>
+    </p>
   </body>
 </html>

@@ -33,7 +33,7 @@ def add_seen_tag():
     if not user:
         return
     seen_tags = db.GqlQuery("SELECT * FROM UserTag "
-                            "WHERE user = :1 AND tag = 'seenn'", user)
+                            "WHERE user = :1 AND tag = 'seen'", user)
     if seen_tags.count() == 0:
         db.put(UserTag(user=user, tag="seen"))
 
@@ -42,9 +42,9 @@ def has_tag(tag):
     user = users.get_current_user()
     if not user:
         return False
+    db.run_in_transaction(add_seen_tag)
     if users.is_current_user_admin():
         return True
-    db.run_in_transaction(add_seen_tag)
     user_tags = db.GqlQuery("SELECT * FROM UserTag "
                             "WHERE user = :1 AND tag = :2", user, tag)
     return user_tags.count() > 0
@@ -83,7 +83,7 @@ class MainPage(webapp.RequestHandler):
     @requires_tag("seen")
     def get(self):
         template_values = make_user_template(self.request.uri)
-        if has_tag("user"):
+        if has_tag("execute"):
             path = os.path.join(os.path.dirname(__file__), 'repl.html')
             self.response.out.write(template.render(path, template_values))
         else:
@@ -97,14 +97,12 @@ def no_imports(name, fromlist):
 
 class WebService(webapp.RequestHandler):
 
-    @requires_tag("validate")
     def cappython_validate(self, string):
         tree = transformer.parse(string.encode("utf-8") + "\n")
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
         return len(log) == 0
 
-    @requires_tag("execute")
     def cappython_run(self, string):
         data = StringIO()
         env = safeeval.safe_environment()
@@ -118,7 +116,7 @@ class WebService(webapp.RequestHandler):
             return unicode(traceback.format_exc())
         return data.getvalue().decode("utf-8")
 
-    @requires_tag("user")
+    @requires_tag("execute")
     def post(self):
         string = self.request.body.decode("utf-8")
         json = simplejson.loads(string)
