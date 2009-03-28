@@ -2,6 +2,9 @@ body {
   font-family: Verdana, Helvetica, sans-serif;
   background-color: #DDDDDD;
 }
-#login {
+#account_status {
     float: right;
+}
+.pending {
+    font-style: italic;
 }

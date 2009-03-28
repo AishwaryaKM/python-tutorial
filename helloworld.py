@@ -5,6 +5,9 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.api import memcache
+from google.appengine.api import urlfetch
+
 import cgi
 import functools
 import os
@@ -91,19 +94,54 @@ class MainPage(webapp.RequestHandler):
             self.response.out.write(template.render(path, template_values))
 
 
+class LoginIframe(webapp.RequestHandler):
+    
+    def get(self):
+        url = users.create_login_url("about:blank")
+        template_values = {"login_url": url,}
+        path = os.path.join(os.path.dirname(__file__), 'login.html')
+        self.response.out.write(template.render(path, template_values))
+
+
+class CdnProxy(webapp.RequestHandler):
+
+    def get(self, rel_url):
+        url = "http://ajax.googleapis.com/ajax/libs/" + rel_url
+        data = memcache.get(url)
+        if data is None:
+            response = urlfetch.fetch(url)
+            if response.status_code == 200:
+                data = {"url": url,
+                        "body": response.content,
+                        "content_type": response.headers["Content-Type"],
+                        "result": 200}
+            else:
+                # We put failures into the cache too, to prevent
+                # spinning failures
+                data = {"url": url,
+                        "result": result.status_code}
+            memcache.set(key=url, value=data)
+        if data["result"] == 200:
+            self.response.headers.add_header("Content-Type",
+                                             data["content_type"])
+            self.response.out.write(data["body"])
+
+
 def no_imports(name, fromlist):
     raise ImportError("You are not yet allowed to import anything: " + name )
 
 
 class WebService(webapp.RequestHandler):
 
-    def cappython_validate(self, string):
+    @requires_tag("execute")
+    def cappython_validate(self, code):
         tree = transformer.parse(string.encode("utf-8") + "\n")
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
         return len(log) == 0
 
-    def cappython_run(self, string):
+    @requires_tag("execute")
+    def cappython_run(self, code):
         data = StringIO()
         env = safeeval.safe_environment()
         env.set_importer(no_imports)
@@ -116,24 +154,39 @@ class WebService(webapp.RequestHandler):
             return unicode(traceback.format_exc())
         return data.getvalue().decode("utf-8")
 
-    @requires_tag("execute")
+    def get_account_status(self):
+        user = users.get_current_user()
+        if not user:
+            return "unknown"
+        db.run_in_transaction(add_seen_tag)
+        if users.is_current_user_admin():
+            return "registered"
+        user_tags = db.GqlQuery("SELECT * FROM UserTag "
+                                "WHERE user = :1 AND tag = 'execute'", user)
+        if user_tags.count() > 0:
+            return "registered"
+        else:
+            return "known"
+
+    def get_constants(self):
+        return {"logout": users.create_logout_url("about:blank"),
+                "login": users.create_login_url("about:blank")}
+
     def post(self):
         string = self.request.body.decode("utf-8")
         json = simplejson.loads(string)
-        if json[u"method"] == u"validate":
-            if self.cappython_validate(json[u"params"][0]):
-                response_data = {u"result": u"passed"}
-            else:
-                response_data = {u"result": u"failed"}
-        elif json[u"method"] == u"execute":
-            response_data = self.cappython_run(json[u"params"][0])
+        assert not json[u"method"].startswith(u"_"), json[u"method"]
+        method = getattr(self, json[u"method"].encode("ascii"))
+        result = method(*json[u"params"])
         self.response.headers.add_header("Content-Type", 
                                          "application/json; charser=utf-8")
-        self.response.out.write(simplejson.dumps(response_data).encode("utf-8"))
+        self.response.out.write(simplejson.dumps(result).encode("utf-8"))
 
 
 application = webapp.WSGIApplication([('/', MainPage),
-                                      ("/ws", WebService)],
+                                      ("/ws", WebService),
+                                      ("/cdn/(.*)", CdnProxy),
+                                      ("/login", LoginIframe)],
                                      debug=True)
 
 
