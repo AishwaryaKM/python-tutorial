@@ -5,7 +5,6 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
-# import pycheck
 import cgi
 import functools
 import os
@@ -17,6 +16,7 @@ import transformer2 as transformer
 import varbindings2 as varbindings
 import linecache
 import safeeval2 as safeeval
+import traceback
 
 import simplejson
 
@@ -28,21 +28,26 @@ class UserTag(db.Model):
     tag = db.StringProperty()
 
 
-def has_tag(tag):
+def add_seen_tag():
     user = users.get_current_user()
     if not user:
-        return False
+        return
     seen_tags = db.GqlQuery("SELECT * FROM UserTag "
                             "WHERE user = :1 AND tag = 'seenn'", user)
     if seen_tags.count() == 0:
         db.put(UserTag(user=user, tag="seen"))
+
+
+def has_tag(tag):
+    user = users.get_current_user()
+    if not user:
+        return False
+    if users.is_current_user_admin():
+        return True
+    db.run_in_transaction(add_seen_tag)
     user_tags = db.GqlQuery("SELECT * FROM UserTag "
                             "WHERE user = :1 AND tag = :2", user, tag)
-    result = users.is_current_user_admin() or user_tags.count() > 0
-    if result and user_tags.count() == 0:
-        assert users.is_current_user_admin()
-        db.put(UserTag(user=user, tag=tag))
-    return result
+    return user_tags.count() > 0
 
 
 def make_user_template(uri):
@@ -107,7 +112,10 @@ class WebService(webapp.RequestHandler):
         def safe_write(string):
             data.write(unicode(string, encoding="ascii").encode("utf-8"))
         env.bind("write", safe_write)
-        safeeval.safe_eval(string.encode("utf-8") + "\n", env)
+        try:
+            safeeval.safe_eval(string.encode("utf-8") + "\n", env)
+        except Exception, e:
+            return unicode(traceback.format_exc())
         return data.getvalue().decode("utf-8")
 
     @requires_tag("user")
