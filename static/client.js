@@ -26,9 +26,6 @@ var ws = new dojo.rpc.JsonService({
 });
 
 
-ws.get_constants().addCallback(function(CONSTANTS) {
-
-
 var style_link = function(link)
 {
     link.style.cursor = "pointer";
@@ -44,6 +41,35 @@ var set_text = function(node, text)
 	});
     var t = document.createTextNode(text);
     node.appendChild(t);
+};
+
+
+var validate = function()
+{
+  var code = document.getElementById("code").value;
+  ws.validate(code).addCallback(function (result) {
+    alert("Validation results: " + result)});
+};
+
+
+var execute = function()
+{
+  var code = document.getElementById("code").value;
+  ws.execute(code).addCallback(function (result) {
+    alert(result)});
+};
+
+
+var fill_in_example = function()
+{
+  document.getElementById("code").value = 
+    'class Foo(object):\n' +
+    '  def __init__(self, data):\n' +
+    '    self._data = data\n' +
+    '  def bar(self):\n' +
+    '    write(self._data)\n' +
+    '\n' +
+    'Foo("wibble: " + __name__).bar()\n';
 };
 
 
@@ -95,4 +121,3 @@ var init = function()
 
 dojo.addOnLoad(init);
 
-});

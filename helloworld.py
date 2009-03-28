@@ -140,14 +140,14 @@ def no_imports(name, fromlist):
 class WebService(webapp.RequestHandler):
 
     @requires_tag("execute")
-    def cappython_validate(self, code):
-        tree = transformer.parse(string.encode("utf-8") + "\n")
+    def validate(self, code):
+        tree = transformer.parse(code.encode("utf-8") + "\n")
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
         return len(log) == 0
 
     @requires_tag("execute")
-    def cappython_run(self, code):
+    def execute(self, code):
         data = StringIO()
         env = safeeval.safe_environment()
         env.set_importer(no_imports)
@@ -155,7 +155,7 @@ class WebService(webapp.RequestHandler):
             data.write(unicode(string, encoding="ascii").encode("utf-8"))
         env.bind("write", safe_write)
         try:
-            safeeval.safe_eval(string.encode("utf-8") + "\n", env)
+            safeeval.safe_eval(code.encode("utf-8") + "\n", env)
         except Exception, e:
             return unicode(traceback.format_exc())
         return data.getvalue().decode("utf-8")
