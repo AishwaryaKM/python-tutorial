@@ -134,7 +134,7 @@ class CdnProxy(webapp.RequestHandler):
 
 
 def no_imports(name, fromlist):
-    raise ImportError("You are not yet allowed to import anything: " + name )
+    raise ImportError("You are not yet allowed to import anything: " + name)
 
 
 class WebService(webapp.RequestHandler):

@@ -29,11 +29,20 @@ def _renumber(a):
     return int_map[a]
 
 def _renumber_tree(a):
+    # The parser from pypy seems to allocate different integer
+    # constants to the different node types.  Look up the correct
+    # numbers (expected by the compiler package) by name.
     mapped = _renumber(a[0])
     if type(a[1]) is tuple:
         rest = list(_renumber_tree(x) for x in a[1:])
     else:
         rest = list(a[1:])
+    # It looks like the pypy parser has trouble with yield as an
+    # expression at the moment.  This part of the grammar file differs
+    # from the cpython one and changing it back causes a SyntaxError.
+    # Since the return value from yield is rarely used anyway, for now
+    # we just add in the extra level to the tree to conform to the
+    # compiler package's expectations.
     if symbol.sym_name.get(mapped) == "yield_stmt":
         if symbol.sym_name.get(rest[0][0]) != "yield_expr":
             rest = [tuple([symbol.yield_expr] + rest)]
