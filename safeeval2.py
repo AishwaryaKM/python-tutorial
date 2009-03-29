@@ -22,6 +22,7 @@ import types
 
 import pycheck2 as pycheck
 import varbindings2 as varbindings
+from pycodegen2 import compile
 
 
 class VerifyError(Exception):
@@ -115,7 +116,7 @@ class Evaluator(object):
                 assert binding.is_read
                 if var_name not in builtins._module.__dict__:
                     print code_filename, "unbound:", var_name
-        code = compile(source_code, code_filename, "exec")
+        code = compile(tree, code_filename, "exec")
         exec code in module.__dict__
         return module
 

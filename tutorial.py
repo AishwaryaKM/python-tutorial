@@ -76,7 +76,7 @@ def convert_print_statments(parsed, name="__print__",
                 else:
                     has_comma = False
                 arglist = tuple([symbol.arglist] + args)
-            name_node = (token.NAME, names[(has_file, has_comma)])
+            name_node = (token.NAME, names[(has_file, has_comma)], 1)
             return _replace_node(_replace_node(EXPR_TEMPLATE, token.NAME,
                                                name_node), 
                                  symbol.arglist, arglist)
@@ -96,29 +96,25 @@ def crazy_print(get_default_fh, fh, extra_comma, *args):
     assert fh is None, fh
     assert not extra_comma
     fh = get_default_fh()
-    fh.write(" ".join(str(a) for a in args) + "\n")
+    fh.write(" ".join(unicode(a).encode("utf-8") for a in args) + "\n")
 
 
 def transforming_parser(code):
     assert type(code) is str
-    tree = parser.ast2tuple(parser.suite(code), line_info=1)
-#     tree = convert_print_statments(tree)
-    return transformer.Transformer().transform(tree)
+    print_stmt_tree = parser.ast2tuple(parser.suite(code), line_info=1)
+    print_func_tree = convert_print_statments(print_stmt_tree)
+    return transformer.Transformer().transform(print_func_tree)
 
 
 def run_with_emulated_print(code):
     data = StringIO()
     env = safeeval.safe_environment()
     env.set_importer(no_imports)
-    def safe_write(string):
-        data.write(unicode(string).encode("utf-8"))
     printer = functools.partial(crazy_print, lambda: data)
-    env.bind("write", lambda a: data.write(unicode(a).encode("utf-8")))
     env.bind("__print__", lambda *a: printer(None, False, *a))
     env.bind("__print_file__", lambda f, *a: printer(f, False, *a))
     env.bind("__print_comma__", lambda *a: printer(None, True, *a))
     env.bind("__print_file_comma__", lambda f, *a: printer(f, True, *a))
-#     my_eval = safeeval.safe_eval#TODO: remove debugging
     my_eval = safeeval.Evaluator(use_filename=False, warn_only=False, 
                                  parser=transforming_parser).exec_code
     my_eval(code, env)

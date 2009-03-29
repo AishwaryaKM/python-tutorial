@@ -53,11 +53,7 @@ var write_out = function(output)
 var validate = function()
 {
   var code = document.getElementById("code").value;
-  var cb = function(result)
-  {
-      write_out("Validation results: " + result);
-  };
-  ws.validate(code).addCallback(cb);
+  ws.validate(code).addCallback(write_out);
 };
 
 
@@ -70,14 +66,11 @@ var execute = function()
 
 var fill_in_example = function()
 {
-  document.getElementById("code").value = 
-    'class Foo(object):\n' +
-    '  def __init__(self, data):\n' +
-    '    self._data = data\n' +
-    '  def bar(self):\n' +
-    '    write(self._data)\n' +
-    '\n' +
-    'Foo("wibble: " + __name__).bar()\n';
+    var cb = function(data)
+    {
+	document.getElementById("code").value = data;
+    };
+    dojo.xhrGet({"url": "/static/example.py"}).addCallback(cb);
 };
 
 

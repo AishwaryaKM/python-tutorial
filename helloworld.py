@@ -19,6 +19,7 @@ import transformer2 as transformer
 import varbindings2 as varbindings
 import linecache
 import traceback
+from pprint import pformat
 
 import simplejson
 
@@ -140,7 +141,11 @@ class WebService(webapp.RequestHandler):
         tree = tutorial.transforming_parser(code)
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
-        return [unicode(l) for l in log]
+        if len(log) == 0:
+            return u"No validation failures"
+        else:
+            return (u"Validation failed for with the following errors:\n" 
+                    + pformat(log))
 
     @requires_tag("execute")
     def execute(self, code):
