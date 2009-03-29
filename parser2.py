@@ -7,11 +7,9 @@ parser = make_pyparser("native")
 symbol_lookup = dict((num, getattr(symbol, name)) 
                      for name, num in parser.symbols.iteritems()
                      if not name.startswith(":"))
-tokens_by_name = dict((name, value) for value, name 
-                      in token.tok_name.iteritems())
-token_lookup = dict((num, tokens_by_name[name]) 
+token_lookup = dict((num, getattr(token, name)) 
                     for name, num in parser.tokens.iteritems()
-                    if name not in ("NULLTOKEN",))
+                    if name not in ("NULLTOKEN", "COMMENT", "NL"))
 
 def pypy_parse(source, mode='exec', lineno=False):
     builder = TupleBuilder(parser)
