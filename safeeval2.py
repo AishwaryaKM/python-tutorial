@@ -60,7 +60,7 @@ class Environment(object):
 
     def bind(self, name, value):
         assert type(name) is str
-        assert not name.startswith("_")
+        assert not name.startswith("_") or pycheck.is_special_attr(name), name
         self._module.__dict__[name] = value
 
     def set_importer(self, func):
@@ -77,9 +77,10 @@ class Evaluator(object):
     #   interpreter will open the named file when formatting a
     #   traceback.
     # - warn_only: This converts the checks' errors to warnings.
-    def __init__(self, use_filename, warn_only):
+    def __init__(self, use_filename, warn_only, parser=transformer.parse):
         self._use_filename = use_filename
         self._warn_only = warn_only
+        self._parse = parser
 
     def exec_code(self, source_code, builtins, filename=None):
         if not self._use_filename or filename is None:
@@ -101,7 +102,7 @@ class Evaluator(object):
         assert type(builtins) is Environment
         module = types.ModuleType("__safe_eval_module__")
         module.__dict__["__builtins__"] = builtins._module
-        tree = transformer.parse(source_code)
+        tree = self._parse(source_code)
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
         if len(log) > 0:

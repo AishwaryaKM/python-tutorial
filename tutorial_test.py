@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import unittest
 import parser
@@ -7,6 +8,8 @@ import token
 import tempfile
 import shutil
 from pprint import pformat
+from StringIO import StringIO
+import safeeval2 as safeeval
 
 import tutorial
 
@@ -32,8 +35,8 @@ def write_file(path, data):
 def meld(actual, expected):
     temp = tempfile.mkdtemp(prefix="tutorial-test--")
     try:
-        write_file(os.path.join(temp, "actual"), pformat(namify(actual)))
-        write_file(os.path.join(temp, "expected"), pformat(namify(expected)))
+        write_file(os.path.join(temp, "actual"), actual)
+        write_file(os.path.join(temp, "expected"), expected)
         subprocess.check_call(["meld", "actual", "expected"], cwd=temp)
     finally:
         shutil.rmtree(temp)
@@ -96,8 +99,45 @@ __print__(a, 1, repr(z))
                 print "PARSED", before_parsed
                 print "EXPECTED", expected
                 print "ACTUAL", actual
-                meld(actual, expected)
+                meld(pformat(namify(actual)), pformat(namify(expected)))
                 raise
+
+
+def run_with_emulated_print(code):
+    data = StringIO()
+    env = safeeval.safe_environment()
+    env.set_importer(no_imports)
+    def safe_write(string):
+        data.write(unicode(string, encoding="ascii").encode("utf-8"))
+    env.bind("write", safe_write)
+    try:
+        safeeval.safe_eval(code.encode("utf-8") + "\n", env)
+    except Exception, e:
+        return unicode(traceback.format_exc())
+    return data.getvalue().decode("utf-8")
+
+
+def run_with_real_print(code):
+    child = subprocess.Popen([sys.executable, "-c", code], 
+                             stdout=subprocess.PIPE)
+    stdout, stderr = child.communicate()
+    assert child.returncode == 0
+    return stdout
+    
+
+
+class TestEmulatePrint(unittest.TestCase):
+
+    def test(self):
+        cases = [
+"""\
+print "hello, world"
+""",
+]
+        for case in cases:
+            actual = run_with_emulated_print(case)
+            expected = run_with_real_print(case)
+            self.assertEquals(actual, expected)
 
 
 if __name__ == "__main__":

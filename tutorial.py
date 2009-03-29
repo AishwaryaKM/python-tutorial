@@ -1,7 +1,11 @@
 
-import parser
+import parser2 as parser
 import token
 import symbol
+from StringIO import StringIO
+import safeeval2 as safeeval
+import functools
+import transformer2 as transformer
 
 
 def _replace_node(pattern, node_type, replacement):
@@ -32,9 +36,11 @@ def get1(items):
     return items[0]
 
 
+#TODO: Fix line_info in template
 EXPR_TEMPLATE = get1(_find_nodes(parser.ast2tuple(parser.suite("""\
 __repace_me__(__replace_me_too__)
-""")), symbol.expr_stmt))
+"""), line_info=1), symbol.expr_stmt))
+
 
 def convert_print_statments(parsed, name="__print__",
                             file="__print_file__",
@@ -78,3 +84,42 @@ def convert_print_statments(parsed, name="__print__",
                                         for t in parsed[1:]))
     else:
         return parsed
+
+
+
+def no_imports(name, fromlist):
+    raise ImportError("You are not yet allowed to import anything: " + name)
+
+
+def crazy_print(get_default_fh, fh, extra_comma, *args):
+    # TODO: Not crazy enough yet
+    assert fh is None, fh
+    assert not extra_comma
+    fh = get_default_fh()
+    fh.write(" ".join(str(a) for a in args) + "\n")
+
+
+def transforming_parser(code):
+    assert type(code) is str
+    tree = parser.ast2tuple(parser.suite(code), line_info=1)
+#     tree = convert_print_statments(tree)
+    return transformer.Transformer().transform(tree)
+
+
+def run_with_emulated_print(code):
+    data = StringIO()
+    env = safeeval.safe_environment()
+    env.set_importer(no_imports)
+    def safe_write(string):
+        data.write(unicode(string).encode("utf-8"))
+    printer = functools.partial(crazy_print, lambda: data)
+    env.bind("write", lambda a: data.write(unicode(a).encode("utf-8")))
+    env.bind("__print__", lambda *a: printer(None, False, *a))
+    env.bind("__print_file__", lambda f, *a: printer(f, False, *a))
+    env.bind("__print_comma__", lambda *a: printer(None, True, *a))
+    env.bind("__print_file_comma__", lambda f, *a: printer(f, True, *a))
+#     my_eval = safeeval.safe_eval#TODO: remove debugging
+    my_eval = safeeval.Evaluator(use_filename=False, warn_only=False, 
+                                 parser=transforming_parser).exec_code
+    my_eval(code, env)
+    return data.getvalue().decode("utf-8")

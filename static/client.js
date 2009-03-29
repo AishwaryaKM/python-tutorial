@@ -44,19 +44,27 @@ var set_text = function(node, text)
 };
 
 
+var write_out = function(output)
+{
+    set_text(document.getElementById("output"), output);
+};
+
+
 var validate = function()
 {
   var code = document.getElementById("code").value;
-  ws.validate(code).addCallback(function (result) {
-    alert("Validation results: " + result)});
+  var cb = function(result)
+  {
+      write_out("Validation results: " + result);
+  };
+  ws.validate(code).addCallback(cb);
 };
 
 
 var execute = function()
 {
   var code = document.getElementById("code").value;
-  ws.execute(code).addCallback(function (result) {
-    alert(result)});
+  ws.execute(code).addCallback(write_out);
 };
 
 

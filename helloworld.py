@@ -18,12 +18,11 @@ import pycheck2 as pycheck
 import transformer2 as transformer
 import varbindings2 as varbindings
 import linecache
-import safeeval2 as safeeval
 import traceback
 
 import simplejson
 
-from StringIO import StringIO
+import tutorial
 
 
 class UserTag(db.Model):
@@ -133,32 +132,23 @@ class CdnProxy(webapp.RequestHandler):
             self.response.out.write(data["body"])
 
 
-def no_imports(name, fromlist):
-    raise ImportError("You are not yet allowed to import anything: " + name)
-
-
 class WebService(webapp.RequestHandler):
 
     @requires_tag("execute")
     def validate(self, code):
-        tree = transformer.parse(code.encode("utf-8") + "\n")
+        code = unicode(code).encode("utf-8") + "\n"
+        tree = tutorial.transforming_parser(code)
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
-        return len(log) == 0
+        return [unicode(l) for l in log]
 
     @requires_tag("execute")
     def execute(self, code):
-        data = StringIO()
-        env = safeeval.safe_environment()
-        env.set_importer(no_imports)
-        def safe_write(string):
-            data.write(unicode(string, encoding="ascii").encode("utf-8"))
-        env.bind("write", safe_write)
+        code = unicode(code).encode("utf-8") + "\n"
         try:
-            safeeval.safe_eval(code.encode("utf-8") + "\n", env)
+            return tutorial.run_with_emulated_print(code).decode("utf-8")
         except Exception, e:
             return unicode(traceback.format_exc())
-        return data.getvalue().decode("utf-8")
 
     def get_account_status(self):
         user = users.get_current_user()
