@@ -11,9 +11,11 @@ import contextlib
 import optparse
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 def format(template, *args, **kwargs):
     assert len(args) == 0 or len(kwargs) == 0, (args, kwargs)
@@ -25,7 +27,7 @@ def _build(target_dir):
     assert not os.path.exists(target_dir), target_dir
     source_dir = os.path.dirname(os.path.abspath(__file__))
     subprocess.check_call(
-        ["rsync", "-av", 
+        ["rsync", "-a", 
          os.path.join(source_dir, "python-tutorial").rstrip("/") + "/",
          target_dir.rstrip("/") + "/"])
 
@@ -37,18 +39,37 @@ def mkdtemp(*args, **kwargs):
     finally:
         shutil.rmtree(temp_dir)
 
+@contextlib.contextmanager
+def interruptable():
+    try:
+        yield
+    except Exception:
+        raise
+    except: #KeyboardInterrupt, SystemExit, etc.
+        pass
+
 def run_development_server(sdk_path):
     with mkdtemp() as temp_dir:
-        target_dir = os.path.join(temp_dir, "python-tutorial")
-        _build(target_dir)
+        stage_dir = os.path.join(temp_dir, "staging")
+        target_dir = os.path.join(temp_dir, "running")
+        _build(stage_dir)
+        subprocess.check_call(["rsync", "-a", stage_dir.rstrip("/") + "/",
+                               target_dir.rstrip("/") + "/"])
+        child = subprocess.Popen(
+            ["python2.5", 
+             os.path.join(sdk_path, "dev_appserver.py"),
+             target_dir])
         try:
-            subprocess.check_call(["python2.5", 
-                                   os.path.join(sdk_path, "dev_appserver.py"),
-                                   target_dir])
-        except Exception:
-            raise
-        except:
-            pass
+            with interruptable():
+                while child.poll() is None:
+                    shutil.rmtree(stage_dir)
+                    _build(stage_dir)
+                    subprocess.check_call(["rsync", "-a", "-i",
+                                           stage_dir.rstrip("/") + "/",
+                                           target_dir.rstrip("/") + "/"])
+                    time.sleep(1)
+        finally:
+            os.kill(child.pid, signal.SIGKILL)
 
 def deploy_live(sdk_path):
     with mkdtemp() as temp_dir:

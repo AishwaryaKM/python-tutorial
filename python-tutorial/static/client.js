@@ -6,9 +6,6 @@ window.addEvent('domready', function(){
 	boxes.push(new MultiBox('mb_logout_known', 
 				{"descClassName": "multiBoxDesc", 
 					"useOverlay": true}));
-	boxes.push(new MultiBox('mb_logout_registered',
-				{"descClassName": "multiBoxDesc", 
-					"useOverlay": true}));
     });
 
 
@@ -80,9 +77,10 @@ function refresh_account_status()
     var pending = document.getElementById("account_status_pending");
     var unknown = document.getElementById("account_unknown");
     var known = document.getElementById("account_known");
-    var registered = document.getElementById("account_registered");
+    var user_id = document.getElementById("user_id");
+    var registration = document.getElementById("user_registration");
     pending.style.display = "";
-    dojo.forEach([unknown, known, registered], function(i) {
+    dojo.forEach([unknown, known], function(i) {
 	    i.style.display = "none";
 	});
     dojo.forEach(boxes, function(i) {
@@ -93,17 +91,15 @@ function refresh_account_status()
 	});
     ws.get_account_status().addCallback(function(status) {
 	    pending.style.display = "none";
-	    if (status == "unknown")
+	    if (status[0] == "unknown")
 		{
 		    unknown.style.display = "";
 		}
-	    else if (status == "known")
+	    else if (status[0] == "known")
 		{
+		    set_text(registration, status[1]);
+		    set_text(user_id, status[2]);
 		    known.style.display = "";
-		}
-	    else if (status == "registered")
-		{
-		    registered.style.display = "";
 		}
 	    else
 		{

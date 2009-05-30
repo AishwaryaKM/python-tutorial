@@ -20,3 +20,8 @@ body
 {
     font-style: italic;
 }
+
+#user_id
+{
+    font-weight: bold;
+}

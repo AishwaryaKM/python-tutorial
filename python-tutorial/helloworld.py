@@ -159,16 +159,16 @@ class WebService(webapp.RequestHandler):
     def get_account_status(self):
         user = users.get_current_user()
         if not user:
-            return "unknown"
+            return ["unknown"]
         db.run_in_transaction(add_seen_tag)
         if users.is_current_user_admin():
-            return "registered"
+            return ["known", "admin", user.nickname()]
         user_tags = db.GqlQuery("SELECT * FROM UserTag "
                                 "WHERE user = :1 AND tag = 'execute'", user)
         if user_tags.count() > 0:
-            return "registered"
+            return ["known", "registered", user.nickname()]
         else:
-            return "known"
+            return ["known", "unregistered", user.nickname()]
 
     def get_constants(self):
         return {"logout": users.create_logout_url("about:blank"),
