@@ -23,7 +23,10 @@ def format(template, *args, **kwargs):
 def _build(target_dir):
     assert not os.path.exists(target_dir), target_dir
     source_dir = os.path.dirname(os.path.abspath(__file__))
-    os.makedirs(target_dir)
+    subprocess.check_call(
+        ["rsync", "-av", 
+         os.path.join(source_dir, "python-tutorial").rstrip("/") + "/",
+         target_dir.rstrip("/") + "/"])
 
 def run_development_server(sdk_path):
     temp_dir = tempfile.mkdtemp(prefix="python-tutorial.tmp.")
@@ -31,8 +34,8 @@ def run_development_server(sdk_path):
         target_dir = os.path.join(temp_dir, "python-tutorial")
         _build(target_dir)
         try:
-            subprocess.check_call(["python", os.path.join(sdk_path, 
-                                                          "dev_appserver.py"),
+            subprocess.check_call(["python2.5", 
+                                   os.path.join(sdk_path, "dev_appserver.py"),
                                    target_dir])
         except Exception:
             raise
