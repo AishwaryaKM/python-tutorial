@@ -8,7 +8,7 @@ class Foo(object):
   def __init__(self, data):
     self._data = data
   def bar(self):
-    print self._data
+    write(str(self._data) + "\n")
 
 Foo("hello, world").bar()
-print [fib(i) for i in range(10)]
+write(str([fib(i) for i in range(10)]) + "\n")

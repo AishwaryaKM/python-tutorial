@@ -151,7 +151,8 @@ class WebService(webapp.RequestHandler):
     def execute(self, code):
         code = unicode(code).encode("utf-8") + "\n"
         try:
-            return tutorial.run_with_emulated_print(code).decode("utf-8")
+#             return tutorial.run_with_emulated_print(code).decode("utf-8")
+            return tutorial.run_straight_cappython(code).decode("utf-8")
         except Exception, e:
             return unicode(traceback.format_exc())
 

@@ -5,6 +5,7 @@ import symbol
 from StringIO import StringIO
 import safeeval2 as safeeval
 import functools
+import traceback
 import transformer2 as transformer
 
 
@@ -119,3 +120,18 @@ def run_with_emulated_print(code):
                                  parser=transforming_parser).exec_code
     my_eval(code, env)
     return data.getvalue().decode("utf-8")
+
+
+def run_straight_cappython(code):
+    data = StringIO()
+    env = safeeval.safe_environment()
+    env.set_importer(no_imports)
+    def safe_write(string):
+        data.write(unicode(string, encoding="ascii").encode("utf-8"))
+    env.bind("write", safe_write)
+    try:
+        safeeval.safe_eval(code.encode("utf-8") + "\n", env)
+    except Exception, e:
+        return unicode(traceback.format_exc())
+    return data.getvalue().decode("utf-8")
+
