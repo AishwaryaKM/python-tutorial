@@ -7,6 +7,7 @@ Action "dev" builds the system and runs the development webserver
 Action "push" builds the system and pushes it to the Google App Engine servers
 """
 
+import contextlib
 import optparse
 import os
 import shutil
@@ -28,9 +29,16 @@ def _build(target_dir):
          os.path.join(source_dir, "python-tutorial").rstrip("/") + "/",
          target_dir.rstrip("/") + "/"])
 
-def run_development_server(sdk_path):
-    temp_dir = tempfile.mkdtemp(prefix="python-tutorial.tmp.")
+@contextlib.contextmanager
+def mkdtemp(*args, **kwargs):
+    temp_dir = tempfile.mkdtemp(*args, **kwargs)
     try:
+        yield temp_dir
+    finally:
+        shutil.rmtree(temp_dir)
+
+def run_development_server(sdk_path):
+    with mkdtemp() as temp_dir:
         target_dir = os.path.join(temp_dir, "python-tutorial")
         _build(target_dir)
         try:
@@ -41,11 +49,19 @@ def run_development_server(sdk_path):
             raise
         except:
             pass
-    finally:
-        shutil.rmtree(temp_dir)
 
 def deploy_live(sdk_path):
-    raise NotImplementedError(deploy_live)
+    with mkdtemp() as temp_dir:
+        target_dir = os.path.join(temp_dir, "python-tutorial")
+        _build(target_dir)
+        try:
+            subprocess.check_call(["python2.5", 
+                                   os.path.join(sdk_path, "appcfg.py"),
+                                   "update", target_dir])
+        except Exception:
+            raise
+        except:
+            pass
 
 def main(prog, argv):
     parser = optparse.OptionParser(__doc__, prog=prog)
