@@ -1,0 +1,22 @@
+body
+{
+    font-family: Verdana, Helvetica, sans-serif;
+    background-color: #c8dfe6;
+    width: 60em;
+    margin: auto;
+}
+
+#main_body
+{
+    margin: 2em;
+}
+
+#account_status
+{
+    float: right;
+}
+
+#account_status_pending
+{
+    font-style: italic;
+}

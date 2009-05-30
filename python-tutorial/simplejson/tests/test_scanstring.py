@@ -1,0 +1,1 @@
+/usr/share/python-support/python-simplejson/simplejson/tests/test_scanstring.py
