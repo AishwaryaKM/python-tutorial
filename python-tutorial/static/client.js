@@ -18,7 +18,7 @@ var ws = new dojo.rpc.JsonService({
         "timeout": 7200,
         "methods":[{"name": "validate", "parameters": [{"name": "code"}]},
                    {"name": "execute", "parameters": [{"name": "code"}]},
-                   {"name": "get_account_status", "parameters": []},
+//                    {"name": "get_account_status", "parameters": []},
 		   {"name": "get_constants", "parameters": []}]
 });
 
@@ -112,7 +112,7 @@ window.refresh_account_status = refresh_account_status;
 
 var init = function() 
 {
-    refresh_account_status();
+//     refresh_account_status();
 };
 
 

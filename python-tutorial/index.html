@@ -20,26 +20,26 @@
   </head>
   <body>
     <div id="main_body">
-      <div id="account_status">
-	<div id="account_status_pending">Checking google account
-	status...</div>
-	<div id="account_unknown" style="display: none;">
-	  <a href="/account/login" rel="width:800,height:600" id="login_link"
-	     class="mb_login" title="Sign in">Sign in</a>
-	  <div class="multiBoxDesc login_link">Please log in using a
-	    google account</div>
-	</div>
-	<div id="account_known" style="display: none;">
-	  <span><span id="user_id">filled by javascript</span>
-	    (<span id="user_registration">filled by javascript</span>
-	    user)</span>
-	  <a href="/account/logout" rel="width:800,height:600"
-	     id="logout_link_known" class="mb_logout_known"
-	     title="Sign out">Sign out</a>
-	  <div class="multiBoxDesc logout_link_known">Please wait while
-	    you are logged out...</div>
-	</div>
-      </div>
+<!--       <div id="account_status"> -->
+<!-- 	<div id="account_status_pending">Checking google account -->
+<!-- 	status...</div> -->
+<!-- 	<div id="account_unknown" style="display: none;"> -->
+<!-- 	  <a href="/account/login" rel="width:800,height:600" id="login_link" -->
+<!-- 	     class="mb_login" title="Sign in">Sign in</a> -->
+<!-- 	  <div class="multiBoxDesc login_link">Please log in using a -->
+<!-- 	    google account</div> -->
+<!-- 	</div> -->
+<!-- 	<div id="account_known" style="display: none;"> -->
+<!-- 	  <span><span id="user_id">filled by javascript</span> -->
+<!-- 	    (<span id="user_registration">filled by javascript</span> -->
+<!-- 	    user)</span> -->
+<!-- 	  <a href="/account/logout" rel="width:800,height:600" -->
+<!-- 	     id="logout_link_known" class="mb_logout_known" -->
+<!-- 	     title="Sign out">Sign out</a> -->
+<!-- 	  <div class="multiBoxDesc logout_link_known">Please wait while -->
+<!-- 	    you are logged out...</div> -->
+<!-- 	</div> -->
+<!--       </div> -->
       <h1>Online Python Tutorial</h1>
       <p>This is an <em>experimental</em> project aiming to provide an
 	interactive python interpreter to casual web visitors so that
@@ -47,12 +47,14 @@
 	language.  It is not ready for general use so I recommend
 	visiting the
 	<a href="http://docs.python.org/tutorial/index.html">officlal
-	  python tutorial</a> instead, for now.</p>
-      <p>Until I am more confident about the security of the sandbox
-	and the resource requirements I am restricting access to
-	registered users who I know personally.  The source code for
-	the project can be found on
-	<a href="http://github.com/jwal/python-tutorial">github.com</a>.</p>
+	  python tutorial</a> instead, for now.  The source code for
+	  the project can be found on
+ 	<a href="http://github.com/jwal/python-tutorial">github.com</a>.</p>
+<!--       <p>Until I am more confident about the security of the sandbox -->
+<!-- 	and the resource requirements I am restricting access to -->
+<!-- 	registered users who I know personally.  The source code for -->
+<!-- 	the project can be found on -->
+<!-- 	<a href="http://github.com/jwal/python-tutorial">github.com</a>.</p> -->
       <textarea id="code" cols="79" rows="25"></textarea>
       <div>
 	<button type="button" onclick="validate()">Validate</button>
