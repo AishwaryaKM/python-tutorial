@@ -26,13 +26,6 @@ import simplejson
 import tutorial
 
 
-class MainPage(webapp.RequestHandler):
-    
-    def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'index.html')
-        self.response.out.write(template.render(path, {}))
-
-
 class CdnProxy(webapp.RequestHandler):
 
     def get(self, rel_url):
@@ -83,7 +76,6 @@ class WebService(webapp.RequestHandler):
 
 
 application = webapp.WSGIApplication([
-        ('/', MainPage),
         ("/ws", WebService),
         ("/cdn/(.*)", CdnProxy),
         ], debug=True)
