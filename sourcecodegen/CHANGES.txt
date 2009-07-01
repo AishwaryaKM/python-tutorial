@@ -1,0 +1,97 @@
+Changelog
+=========
+
+In next release...
+
+- Fixed order of node and expression for augmented assignment. [malthe]
+
+0.6.9 (released 19/05/2009)
+
+- Fixed issue where variable keyword-arguments would sometimes not be
+  handled correctly. [malthe]
+
+- Fixed issue where identity operator would not be handled
+  correctly. [malthe]
+
+0.6.8 (released 18/05/2009)
+
+ - Fixed issue where the delete operator would not be treated as a
+   statement. [malthe]
+
+0.6.7 (released 22/04/2009)
+
+ - Fixed issue where star and double-star arguments would be printed
+   without the '*' and '**' prefix. [malthe]
+
+0.6.6 (released 17/04/2009)
+
+ - Fixed issue where multiple discarded elements in a statement would
+   get wrong indentation. [malthe]
+
+0.6.5 (released 19/02/2009)
+
+ - Fixed issue where a module docstring would cause an undesired
+   indentaion. [malthe]
+
+0.6.4 (released 24/01/2009)
+
+ - Added convenience method to generate code. [malthe]
+
+0.6.3 (released 18/12/2008)
+
+ - Allow proper operation under Python 2.4 (try/finally
+   fixes). [chrism]
+
+0.6.2 (released 14/12/2008)
+
+ - Fixed issue where lambda blocks would be incorrectly indented;
+   also, function bodies are now always properly cleared. [malthe]
+
+0.6.1 (released 13/12/2008)
+
+ - Fixed issue where generators would not be prioritized in certain
+   cases. [malthe]
+
+0.6 (released 13/12/2008)
+
+ - Operator precedence is now taken into account such that we can
+   avoid unnecessary use of parentheses. This is done not only for
+   aesthetic reasons, but more importantly to avoid running into
+   parser errors due to Python's nesting limitation. [malthe]
+
+0.5 (released 28/11/2008)
+
+ - Added `yield` and unary operators. [malthe]
+
+0.4 (released 28/11/2008)
+
+ - Make sure all binary operators get parentheses around them; we may
+   be able to improve upon this in the future (for
+   legibility-reasons). [malthe]
+
+0.3 (released 27/11/2008)
+
+ - Added logical operators. [malthe]
+
+ - Fixed tuple unpacking issues. [malthe]
+
+ - Added for-loop. [malthe]
+
+0.2 (released 27/11/2008)
+
+ - Fixed issue with tuples and parentheses. [malthe]
+
+ - Fixed issue with multiple assignments. [malthe]
+
+ - Added support for `not` operator. [malthe]
+
+ - Fixed issue where default arguments would be written incorrectly if
+   no non-keyword arguments were present. [malthe]
+
+ - Fixed issue where statements would not be cleared properly. [malthe]
+
+ - Assignments are statements and should terminate. [malthe]
+
+0.1 (released 26/11/2008)
+
+ - Initial release.
