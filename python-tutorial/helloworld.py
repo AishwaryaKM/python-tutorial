@@ -26,87 +26,11 @@ import simplejson
 import tutorial
 
 
-class UserTag(db.Model):
-    user = db.UserProperty()
-    tag = db.StringProperty()
-
-
-def add_seen_tag():
-    user = users.get_current_user()
-    if not user:
-        return
-    seen_tags = db.GqlQuery("SELECT * FROM UserTag "
-                            "WHERE user = :1 AND tag = 'seen'", user)
-    if seen_tags.count() == 0:
-        db.put(UserTag(user=user, tag="seen"))
-
-
-def has_tag(tag):
-    user = users.get_current_user()
-    if not user:
-        return False
-    db.run_in_transaction(add_seen_tag)
-    if users.is_current_user_admin():
-        return True
-    user_tags = db.GqlQuery("SELECT * FROM UserTag "
-                            "WHERE user = :1 AND tag = :2", user, tag)
-    return user_tags.count() > 0
-
-
-def make_user_template(uri):
-    if users.get_current_user():
-        url = users.create_logout_url(uri)
-        url_linktext = 'Logout'
-    else:
-        url = users.create_login_url(uri)
-        url_linktext = 'Login'
-    template_values = {
-        'url': url,
-        'url_linktext': url_linktext,
-        }
-    return template_values
-
-
-def requires_tag(tag):
-    def decorator(func):
-        @functools.wraps(func)
-        def handler(self, *args, **kwargs):
-            if has_tag(tag):
-                return func(self, *args, **kwargs)
-            else:
-                path = os.path.join(os.path.dirname(__file__), 'index.html')
-                template_values = make_user_template(self.request.uri)
-                self.response.out.write(template.render(path, template_values))
-        return handler
-    return decorator
-
-
 class MainPage(webapp.RequestHandler):
     
-#     @requires_tag("seen")
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'index.html')
-        template_values = make_user_template(self.request.uri)
-        self.response.out.write(template.render(path, template_values))
-
-
-class LoginIframe(webapp.RequestHandler):
-    
-    def get(self, action):
-        if action == "refresh":
-            path = os.path.join(os.path.dirname(__file__), 
-                                "account-refresh.html")
-            self.response.out.write(template.render(path, {}))
-        else:
-            if action == "login":
-                url = users.create_login_url("/account/refresh")
-            elif action == "logout":
-                url = users.create_logout_url("/account/refresh")
-            else:
-                raise NotImplemnetedError(action)
-            template_values = {"login_url": url}
-            path = os.path.join(os.path.dirname(__file__), 'account.html')
-            self.response.out.write(template.render(path, template_values))
+        self.response.out.write(template.render(path, {}))
 
 
 class CdnProxy(webapp.RequestHandler):
@@ -135,7 +59,6 @@ class CdnProxy(webapp.RequestHandler):
 
 class WebService(webapp.RequestHandler):
 
-#     @requires_tag("execute")
     def execute(self, code):
         code = unicode(code).encode("utf-8") + "\n"
         try:
@@ -143,20 +66,6 @@ class WebService(webapp.RequestHandler):
             return tutorial.run_straight_cappython(code).decode("utf-8")
         except Exception, e:
             return unicode(traceback.format_exc())
-
-#     def get_account_status(self):
-#         user = users.get_current_user()
-#         if not user:
-#             return ["unknown"]
-#         db.run_in_transaction(add_seen_tag)
-#         if users.is_current_user_admin():
-#             return ["known", "admin", user.nickname()]
-#         user_tags = db.GqlQuery("SELECT * FROM UserTag "
-#                                 "WHERE user = :1 AND tag = 'execute'", user)
-#         if user_tags.count() > 0:
-#             return ["known", "registered", user.nickname()]
-#         else:
-#             return ["known", "unregistered", user.nickname()]
 
     def get_constants(self):
         return {"logout": users.create_logout_url("about:blank"),
@@ -177,7 +86,6 @@ application = webapp.WSGIApplication([
         ('/', MainPage),
         ("/ws", WebService),
         ("/cdn/(.*)", CdnProxy),
-#         ("/account/(login|logout|refresh)", LoginIframe)
         ], debug=True)
 
 
