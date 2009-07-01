@@ -1,6 +1,6 @@
 import sys
 
-from compiler import ast
+import ast2 as ast
 
 from cStringIO import StringIO
 

@@ -17,6 +17,13 @@ import sys
 import tempfile
 import time
 
+def replace(source, destination):
+    if os.path.isdir(source):
+        subprocess.check_call(["rsync", "-a", source.rstrip("/") + "/",
+                               destination.rstrip("/") + "/"])
+    else:
+        subprocess.check_call(["rsync", source, destination])
+
 def format(template, *args, **kwargs):
     assert len(args) == 0 or len(kwargs) == 0, (args, kwargs)
     if len(args) > 0:
@@ -26,10 +33,14 @@ def format(template, *args, **kwargs):
 def _build(target_dir):
     assert not os.path.exists(target_dir), target_dir
     source_dir = os.path.dirname(os.path.abspath(__file__))
-    subprocess.check_call(
-        ["rsync", "-a", 
-         os.path.join(source_dir, "python-tutorial").rstrip("/") + "/",
-         target_dir.rstrip("/") + "/"])
+    fh = open(os.path.join(source_dir, "renames.py"))
+    try:
+        rename_data = fh.read()
+    finally:
+        fh.close()
+    for rel_source, rel_dest in eval(rename_data):
+        replace(os.path.abspath(os.path.join(source_dir, rel_source)), 
+                os.path.abspath(os.path.join(target_dir, rel_dest)))
 
 @contextlib.contextmanager
 def mkdtemp(*args, **kwargs):
@@ -63,10 +74,14 @@ def run_development_server(sdk_path):
             with interruptable():
                 while child.poll() is None:
                     shutil.rmtree(stage_dir)
-                    _build(stage_dir)
-                    subprocess.check_call(["rsync", "-a", "-i",
-                                           stage_dir.rstrip("/") + "/",
-                                           target_dir.rstrip("/") + "/"])
+                    try:
+                        _build(stage_dir)
+                    except Exception, e:
+                        print "Build error.  Transient?", str(e)
+                    else:
+                        subprocess.check_call(["rsync", "-a", "-i",
+                                               stage_dir.rstrip("/") + "/",
+                                               target_dir.rstrip("/") + "/"])
                     time.sleep(1)
         finally:
             os.kill(child.pid, signal.SIGKILL)
