@@ -136,18 +136,6 @@ class CdnProxy(webapp.RequestHandler):
 class WebService(webapp.RequestHandler):
 
 #     @requires_tag("execute")
-    def validate(self, code):
-        code = unicode(code).encode("utf-8") + "\n"
-        tree = tutorial.transforming_parser(code)
-        global_vars, bindings = varbindings.annotate(tree)
-        log = pycheck.check(tree, bindings)
-        if len(log) == 0:
-            return u"No validation failures"
-        else:
-            return (u"Validation failed for with the following errors:\n" 
-                    + pformat(log))
-
-#     @requires_tag("execute")
     def execute(self, code):
         code = unicode(code).encode("utf-8") + "\n"
         try:

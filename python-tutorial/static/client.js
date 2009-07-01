@@ -16,8 +16,7 @@ var ws = new dojo.rpc.JsonService({
         "serviceType": "JSON-RPC",
         "serviceURL": "/ws",
         "timeout": 7200,
-        "methods":[{"name": "validate", "parameters": [{"name": "code"}]},
-                   {"name": "execute", "parameters": [{"name": "code"}]},
+        "methods":[{"name": "execute", "parameters": [{"name": "code"}]},
 //                    {"name": "get_account_status", "parameters": []},
 		   {"name": "get_constants", "parameters": []}]
 });
@@ -44,13 +43,6 @@ var set_text = function(node, text)
 var write_out = function(output)
 {
     set_text(document.getElementById("output"), output);
-};
-
-
-var validate = function()
-{
-  var code = document.getElementById("code").value;
-  ws.validate(code).addCallback(write_out);
 };
 
 
