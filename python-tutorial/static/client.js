@@ -149,40 +149,79 @@ var write_hash = function(new_hash, do_redirect)
 };
 
 
-var process_hash_change = function()
-{
-    read_hash();
-    var node = document.getElementById("latest_hash_contents");
-    clear_element(node);
-    var hash = read_hash();
-    if (hash == null)
-	{
-	    var child = document.createElement("em");
-	    node.appendChild(child);
-	    set_text(child, "[no hash]");
-	}
-    if (hash == "")
-	{
-	    var child = document.createElement("em");
-	    node.appendChild(child);
-	    set_text(child, "[empty string]");
-	}
-    else
-	{
-	    set_text(node, hash);
-	}
-};
-
-
 var init = function()
 {
     emulate_onhashchange();
-    window.onhashchange = process_hash_change;
-    if (read_hash() == null)
+    var cb = function(pages)
+    {
+	var ordered_names = [];
+	var name_to_title = {};
+	dojo.forEach(pages, function(item) {
+		ordered_names.push(item[0]);
+		name_to_title[item[0]] = item[1];
+	    })
+	var process_hash_change = function()
 	{
-	    write_hash("home", true);
-	}
-    process_hash_change();
+	    var hash = read_hash();
+	    if (typeof name_to_title[hash] == "undefined")
+		{
+		    throw new Error("Unknown page: " + hash.toSource());
+		}
+	    var handle_data = function(content)
+	    {
+		dojo.byId("tutorial_instructions").innerHTML = content;
+	    };
+	    var index = dojo.indexOf(ordered_names, hash);
+	    var first = dojo.byId("first_link");
+	    var previous = dojo.byId("previous_link");
+	    if (index == 0)
+		{
+		    first.style.display = "none";
+		    previous.style.display = "none";
+		}
+	    else
+		{
+		    var first_name = ordered_names[0];
+		    first.setAttribute("title", name_to_title[first_name]);
+		    first.setAttribute("href", "#" + first_name);
+		    first.style.display = "";
+		    var previous_name = ordered_names[index - 1];
+		    previous.setAttribute("title", name_to_title[previous_name]);
+		    previous.setAttribute("href", "#" + previous_name);
+		    previous.style.display = "";
+		}
+	    var current = dojo.byId("current_title");
+	    set_text(current, name_to_title[hash]);
+	    var next = dojo.byId("next_link");
+	    var last = dojo.byId("last_link");
+	    if (index == ordered_names.length - 1)
+		{
+		    next.style.display = "none";
+		    last.style.display = "none";
+		}
+	    else
+		{
+		    var next_name = ordered_names[index + 1];
+		    next.setAttribute("title", name_to_title[next_name]);
+		    next.setAttribute("href", "#" + next_name);
+		    next.style.display = "";
+		    var last_name = ordered_names[ordered_names.length - 1];
+		    last.setAttribute("title", name_to_title[last_name]);
+		    last.setAttribute("href", "#" + last_name);
+		    last.style.display = "";
+		}
+	    dojo.xhrGet({"url": "/static/" + hash}).addCallback(handle_data);
+	};
+	window.onhashchange = process_hash_change;
+	if (read_hash() == null)
+	    {
+		write_hash(ordered_names[0], true);
+	    }
+	process_hash_change();
+    };
+    var params = {"url": "/static/tutorial-index.json", 
+		  "handleAs": "json"}
+    dojo.xhrGet(params).addCallback(cb);
 };
 
 
