@@ -169,26 +169,27 @@ var init = function()
 		}
 	    var handle_data = function(content)
 	    {
-		dojo.byId("tutorial_instructions").innerHTML = content;
+		dojo.byId("tutorial-body").innerHTML = content;
 	    };
 	    var index = dojo.indexOf(ordered_names, hash);
 	    var first = dojo.byId("first_link");
 	    var previous = dojo.byId("previous_link");
 	    if (index == 0)
 		{
-		    first.style.display = "none";
-		    previous.style.display = "none";
+		    first.style.visibility = "hidden";
+		    previous.style.visibility = "hidden";
 		}
 	    else
 		{
 		    var first_name = ordered_names[0];
 		    first.setAttribute("title", name_to_title[first_name]);
 		    first.setAttribute("href", "#" + first_name);
-		    first.style.display = "";
+		    first.style.visibility = "visible";
 		    var previous_name = ordered_names[index - 1];
-		    previous.setAttribute("title", name_to_title[previous_name]);
+		    previous.setAttribute("title", 
+					  name_to_title[previous_name]);
 		    previous.setAttribute("href", "#" + previous_name);
-		    previous.style.display = "";
+		    previous.style.visibility = "visible";
 		}
 	    var current = dojo.byId("current_title");
 	    set_text(current, name_to_title[hash]);
@@ -196,19 +197,19 @@ var init = function()
 	    var last = dojo.byId("last_link");
 	    if (index == ordered_names.length - 1)
 		{
-		    next.style.display = "none";
-		    last.style.display = "none";
+		    next.style.visibility = "hidden";
+		    last.style.visibility = "hidden";
 		}
 	    else
 		{
 		    var next_name = ordered_names[index + 1];
 		    next.setAttribute("title", name_to_title[next_name]);
 		    next.setAttribute("href", "#" + next_name);
-		    next.style.display = "";
+		    next.style.visibility = "visible";
 		    var last_name = ordered_names[ordered_names.length - 1];
 		    last.setAttribute("title", name_to_title[last_name]);
 		    last.setAttribute("href", "#" + last_name);
-		    last.style.display = "";
+		    last.style.visibility = "visible";
 		}
 	    dojo.xhrGet({"url": "/static/" + hash}).addCallback(handle_data);
 	};

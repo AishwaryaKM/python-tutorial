@@ -25,3 +25,45 @@ body
 {
     font-weight: bold;
 }
+
+#tutorial-area > *
+{
+    border-color: black;
+    border-width: 0.1em;
+    border-style: solid;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+#tutorial-area > #navigation
+{
+    -moz-border-radius-topleft: 1em;
+    -moz-border-radius-topright: 1em;
+    padding-bottom: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+#tutorial-area > #tutorial-body
+{
+    -moz-border-radius-bottomleft: 1em;
+    -moz-border-radius-bottomright: 1em;
+    margin-bottom: 0.5em;
+}
+
+#tutorial-body h2
+{
+    width: 100%;
+    border-bottom-style: dotted;
+    border-color: black;
+    border-width: 0.1em;
+}
+
+#first_link, #previous_link {
+    margin-right: 0.2em;
+    float: left;
+}
+
+#last_link, #next_link {
+    margin-left: 0.2em;
+    float: right;
+}
