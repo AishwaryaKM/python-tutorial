@@ -192,7 +192,9 @@ var init = function()
 		    previous.style.visibility = "visible";
 		}
 	    var current = dojo.byId("current_title");
-	    set_text(current, name_to_title[hash]);
+	    var title = "Online Python Tutorial - " + name_to_title[hash]
+	    set_text(current, title);
+	    document.title = title;
 	    var next = dojo.byId("next_link");
 	    var last = dojo.byId("last_link");
 	    if (index == ordered_names.length - 1)

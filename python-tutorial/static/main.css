@@ -50,9 +50,10 @@ body
     margin-bottom: 0.5em;
 }
 
-#tutorial-body h2
+#tutorial-body h1
 {
     width: 100%;
+    font-size: 1.5em;
     border-bottom-style: dotted;
     border-color: black;
     border-width: 0.1em;

@@ -1,0 +1,29 @@
+<div>
+  <h1>Lists</h1>
+  <p>As well as individual items, python has a simple syntax for
+     collecting items together into lists.</p>
+  <p>First, make a list</p>
+<pre>
+a_list = [1, 2, "three"]
+</pre>
+  <p>Then print the list and it's length</p>
+<pre>
+print "A list with", len(a_list), "items is:", a_list
+</pre>
+  <p>In addition to lists, this program introduces other new concepts.
+     The name <code>a_list</code> is used as an alias to refer to the
+     three items collectively.  This saves us from having to type it
+     out in both of the places we use it.</p>
+  <p>The construction <code>len(a_list)</code> is used to fetch the
+     size of the list.  This might be useful if we added something to
+     the list later.</p>
+<pre>
+a_list.append(4)
+print len(a_list), a_list[0], a_list[1], a_list[-1]
+</pre>
+  <p><code>append</code> modifies the collection by adding a new item
+     to the end.  The square brackets are a convenient way to fetch
+     individual items from the list.  The first item is given the
+     number 0 and you can use negative numbers to get items positioned
+     relative to the end of the list.</p>
+</div>

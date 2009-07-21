@@ -1,5 +1,7 @@
 [
 	["intro.html", "Introduction"],
+	["getting-started.html", "Getting Started"],
 	["hello-world.html", "Hello, world!"],
-	["if.html", "Conditionals"]
+	["lists.html", "Lists"],
+	["todo.html", "End of tutorial (for now)"],
 ]
