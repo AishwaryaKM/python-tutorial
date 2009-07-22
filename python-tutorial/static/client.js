@@ -208,11 +208,12 @@ var init = function()
     var params = {"url": "/static/tutorial-index.json", 
 		  "handleAs": "json"}
     dojo.xhrGet(params).addCallback(cb);
+    var codemirror_base = "/static/codemirror";
+    var codemirror_python = codemirror_base + "/contrib/python";
     var editor = new CodeMirror(document.getElementById("code-box"), {
-	    path: "/static/codemirror/",
-	    parserfile: "contrib/python/js/parsepython.js",
-	    stylesheet: ("/static/codemirror/contrib/python"
-			 + "/css/pythoncolors.css"),
+	    path: codemirror_base + "/js/",
+	    parserfile: "../contrib/python/js/parsepython.js",
+	    stylesheet: codemirror_python + "/css/pythoncolors.css",
 	});
     var execute = function()
     {
@@ -224,7 +225,6 @@ var init = function()
     {
 	var cb = function(data)
 	{
-	    console.debug(editor, data)
 	    editor.setCode(data);
 	};
 	dojo.xhrGet({"url": "/static/example.py"}).addCallback(cb);
