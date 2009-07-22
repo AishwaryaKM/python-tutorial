@@ -13,7 +13,7 @@
     <script src="/static/multibox/MultiBox/_common/js/mootools.js"
 	    type="text/javascript"></script>
     <script src="/static/overlay.js" type="text/javascript"></script>
-    <script src="/static/multibox/MultiBox/multibox/multibox.js"
+    <script src="/static/codemirror/js/codemirror.js" 
 	    type="text/javascript"></script>
     <link type="text/css" rel="stylesheet" href="/static/main.css" />
     <script type="text/javascript" src="/static/client.js"></script>
@@ -35,10 +35,10 @@
 	<div id="tutorial-body"></div>
       </div>
       <pre id="output"></pre>
-      <textarea id="code" cols="79" rows="25"></textarea>
+      <div id="code-box"></div>
       <div>
-	<button type="button" onclick="execute()">Execute</button>
-	<button type="button" onclick="fill_in_example()">Fill in
+	<button type="button" id="execute-button">Execute</button>
+	<button type="button" id="example-button">Fill in
 	example</button>
       </div>
     </div>

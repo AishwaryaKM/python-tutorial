@@ -32,23 +32,6 @@ var write_out = function(output)
 };
 
 
-var execute = function()
-{
-  var code = document.getElementById("code").value;
-  ws.execute(code).addCallback(write_out);
-};
-
-
-var fill_in_example = function()
-{
-    var cb = function(data)
-    {
-	document.getElementById("code").value = data;
-    };
-    dojo.xhrGet({"url": "/static/example.py"}).addCallback(cb);
-};
-
-
 var emulate_onhashchange = function()
 {
     /*
@@ -225,6 +208,28 @@ var init = function()
     var params = {"url": "/static/tutorial-index.json", 
 		  "handleAs": "json"}
     dojo.xhrGet(params).addCallback(cb);
+    var editor = new CodeMirror(document.getElementById("code-box"), {
+	    path: "/static/codemirror/",
+	    parserfile: "contrib/python/js/parsepython.js",
+	    stylesheet: ("/static/codemirror/contrib/python"
+			 + "/css/pythoncolors.css"),
+	});
+    var execute = function()
+    {
+	var code = editor.getCode();
+	ws.execute(code).addCallback(write_out);
+    };
+    document.getElementById("execute-button").onclick = execute;
+    var fill_in_example = function()
+    {
+	var cb = function(data)
+	{
+	    console.debug(editor, data)
+	    editor.setCode(data);
+	};
+	dojo.xhrGet({"url": "/static/example.py"}).addCallback(cb);
+    };
+    document.getElementById("example-button").onclick = fill_in_example;
 };
 
 

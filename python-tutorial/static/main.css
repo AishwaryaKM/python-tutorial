@@ -68,3 +68,11 @@ body
     margin-left: 0.2em;
     float: right;
 }
+
+#code-box
+{
+    background-color: white;
+    border-color: black;
+    border-width: 0.1em;
+    border-style: solid;
+}
