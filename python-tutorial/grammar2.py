@@ -8,8 +8,7 @@ KleeneStar   : as in S -> A* or S -> A+
 Token       : a lexer token
 """
 try:
-    from baseobjspace2 import Wrappable
-    from pytoken2 import NULLTOKEN
+    raise ImportError
 except ImportError:
     # allows standalone testing
     Wrappable = object

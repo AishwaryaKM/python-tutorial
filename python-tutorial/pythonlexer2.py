@@ -52,7 +52,7 @@ def match_encoding_declaration(comment):
 import pytoken2 as pytoken
 from pytokenize2 import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
      single_quoted, pseudoDFA
-import automata2 as automata
+import pypybits.automata as automata
 
 
 class TokenError(SyntaxError):
