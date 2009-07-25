@@ -25,7 +25,7 @@ import pypybits.grammar as grammar
 # from pypy.interpreter.pyparser.pythonutil import build_parser_for_version
 from pypybits.pythonutil import build_parser_for_version
 # from pypy.interpreter.pyparser import symbol
-import symbol2 as symbol
+import pypybits.symbol as symbol
 
 from codeop import PyCF_DONT_IMPLY_DEDENT
 
