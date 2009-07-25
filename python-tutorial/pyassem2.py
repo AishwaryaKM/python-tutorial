@@ -4,7 +4,7 @@ import dis
 import new
 import sys
 
-import misc2 as misc
+import pypybits.misc as misc
 from pypybits.compilerconsts \
      import CO_OPTIMIZED, CO_NEWLOCALS, CO_VARARGS, CO_VARKEYWORDS
 

@@ -27,4 +27,5 @@
     ("pypy/pypy/interpreter/pyparser/ebnflexer.py", "pypybits/ebnflexer.py"),
     ("pypy/pypy/interpreter/pyparser/ebnfparse.py", "pypybits/ebnfparse.py"),
     ("pypy/pypy/interpreter/pyparser/error.py", "pypybits/error.py"),
+    ("pypy/lib-python/2.5.2/compiler/misc.py", "pypybits/misc.py"),
  ]
