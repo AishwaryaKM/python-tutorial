@@ -11,4 +11,5 @@
  ("pypy/pypy/interpreter/pyparser/pythonutil.py", "pypybits/pythonutil.py"),
  ("pypy/pypy/interpreter/pyparser/data/Grammar2.5", "pypybits/Grammar2.5"),
  ("pypy/pypy/tool/uid.py", "pypybits/uid2.py"),
+ ("pypy/pypy/interpreter/stablecompiler/visitor.py", "pypybits/visitor.py"),
  ]

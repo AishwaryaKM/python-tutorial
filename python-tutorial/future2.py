@@ -2,7 +2,7 @@
 
 """
 
-from visitor2 import walk
+from pypybits.visitor import walk
 import ast2 as ast
 
 def is_future(stmt):

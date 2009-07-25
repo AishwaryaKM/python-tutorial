@@ -7,7 +7,7 @@ from cStringIO import StringIO
 
 import ast2 as ast
 from transformer2 import parse
-from visitor2 import walk
+from pypybits.visitor import walk
 import syntax2 as syntax
 import pyassem2 as pyassem
 import misc2 as misc

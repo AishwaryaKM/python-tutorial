@@ -10,7 +10,7 @@ errors.
 """
 
 import ast2 as ast
-from visitor2 import walk
+from pypybits.visitor import walk
 
 def check(tree, multi=None):
     v = SyntaxErrorChecker(multi)
