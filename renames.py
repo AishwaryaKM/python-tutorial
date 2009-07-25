@@ -25,4 +25,5 @@
     ("pypy/pypy/interpreter/pyparser/ebnfgrammar.py",
      "pypybits/ebnfgrammar.py"),
     ("pypy/pypy/interpreter/pyparser/ebnflexer.py", "pypybits/ebnflexer.py"),
+    ("pypy/pypy/interpreter/pyparser/ebnfparse.py", "pypybits/ebnfparse.py"),
  ]

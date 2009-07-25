@@ -15,7 +15,7 @@ from pypybits.ebnfgrammar import GRAMMAR_GRAMMAR
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource
 from pypybits.ebnflexer import GrammarSource
 # from pypy.interpreter.pyparser.ebnfparse import EBNFBuilder
-from ebnfparse2 import EBNFBuilder
+from pypybits.ebnfparse import EBNFBuilder
 
 # from pypy.interpreter.pyparser.tuplebuilder import TupleBuilder
 from pypybits.tuplebuilder import TupleBuilder

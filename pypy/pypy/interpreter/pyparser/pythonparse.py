@@ -16,7 +16,7 @@ from pypybits.astconsts import CO_FUTURE_WITH_STATEMENT
 # import pypy.interpreter.pyparser.pytoken as pytoken
 import pytoken2 as pytoken
 # import pypy.interpreter.pyparser.ebnfparse as ebnfparse
-import ebnfparse2 as ebnfparse
+import pypybits.ebnfparse as ebnfparse
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource
 from pypybits.ebnflexer import GrammarSource
 # from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
