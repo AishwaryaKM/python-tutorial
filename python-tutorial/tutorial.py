@@ -1,12 +1,13 @@
 
 from StringIO import StringIO
-import functools
-import fakeparser as parser
 import cappython.safeeval as safeeval
+import fakeparser as parser
+import functools
+import pypybits.transformer as transformer
+import sourcecodegen
 import symbol
 import token
 import traceback
-import pypybits.transformer as transformer
 
 
 def _replace_node(pattern, node_type, replacement):
@@ -116,9 +117,9 @@ def run_with_emulated_print(code):
     env.bind("__print_file__", lambda f, *a: printer(f, False, *a))
     env.bind("__print_comma__", lambda *a: printer(None, True, *a))
     env.bind("__print_file_comma__", lambda f, *a: printer(f, True, *a))
-    my_eval = safeeval.Evaluator(use_filename=False, warn_only=False, 
-                                 parser=transforming_parser).exec_code
-    my_eval(code, env)
+    parsed = transforming_parser(code)
+    generated_code = sourcecodegen.generate_code(parsed)
+    safeeval.safe_eval(generated_code, env)
     return data.getvalue().decode("utf-8")
 
 
