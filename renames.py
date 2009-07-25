@@ -17,4 +17,6 @@
     ("pypy/lib-python/2.5.2/compiler/ast.py", "pypybits/ast.py"),
     ("pypy/pypy/interpreter/pyparser/tuplebuilder.py", 
      "pypybits/tuplebuilder.py"),
+    ("pypy/lib-python/2.5.2/compiler/transformer.py",
+     "pypybits/transformer.py"),
  ]

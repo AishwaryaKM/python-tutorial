@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import transformer2 as transformer
+import pypybits.transformer as transformer
 import os
 import types
 

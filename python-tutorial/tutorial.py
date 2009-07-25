@@ -6,7 +6,7 @@ import cappython.safeeval as safeeval
 import symbol
 import token
 import traceback
-import transformer2 as transformer
+import pypybits.transformer as transformer
 
 
 def _replace_node(pattern, node_type, replacement):

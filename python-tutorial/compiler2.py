@@ -21,4 +21,4 @@ compileFile(filename)
     Generates a .pyc file by compiling filename.
 """
 
-from transformer2 import parseFile
+from pypybits.transformer import parseFile
