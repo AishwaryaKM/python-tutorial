@@ -1,5 +1,5 @@
-from grammar2 import Token, GrammarProxy
-from grammar2 import AbstractBuilder, AbstractContext
+from pypybits.grammar import Token, GrammarProxy
+from pypybits.grammar import AbstractBuilder, AbstractContext
 
 
 ORDA = ord("A")

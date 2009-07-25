@@ -2,7 +2,7 @@
 # and the symbol mappings
 
 # XXX Why are we doing these imports?
-from grammar2 import Alternative, Sequence, Token, KleeneStar, Parser
+from pypybits.grammar import Alternative, Sequence, Token, KleeneStar, Parser
 
 class GrammarParser(Parser):
     pass

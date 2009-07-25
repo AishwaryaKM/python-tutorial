@@ -3,7 +3,7 @@ it obeys the TokenSource interface defined for the grammar
 analyser in grammar.py
 """
 
-from grammar2 import TokenSource, Token, AbstractContext
+from pypybits.grammar import TokenSource, Token, AbstractContext
 from ebnfgrammar2 import GRAMMAR_GRAMMAR as G
 
 

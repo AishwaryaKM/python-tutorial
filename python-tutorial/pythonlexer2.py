@@ -5,7 +5,7 @@ analyser in grammar.py
 import sys
 from codeop import PyCF_DONT_IMPLY_DEDENT
 
-from grammar2 import TokenSource, Token, AbstractContext, Parser
+from pypybits.grammar import TokenSource, Token, AbstractContext, Parser
 from error3 import SyntaxError
 
 import pytoken2 as pytoken

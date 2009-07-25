@@ -13,7 +13,7 @@ import pytoken2 as pytoken
 import ebnfparse2 as ebnfparse
 from ebnflexer2 import GrammarSource
 from ebnfgrammar2 import GRAMMAR_GRAMMAR
-import grammar2 as grammar
+import pypybits.grammar as grammar
 from pythonutil2 import build_parser_for_version
 import symbol2 as symbol
 
