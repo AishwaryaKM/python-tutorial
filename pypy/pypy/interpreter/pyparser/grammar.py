@@ -19,7 +19,7 @@ except ImportError:
 NO_ERROR = 0
 ERROR_EXPECTED_INDENT = 1
 
-from syntaxtree2 import SyntaxNode, TempSyntaxNode, TokenNode
+from pypybits.syntaxtree import SyntaxNode, TempSyntaxNode, TokenNode
 
 
 DEBUG = 0
