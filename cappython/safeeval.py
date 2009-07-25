@@ -16,12 +16,14 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import compiler
+import pypybits.transformer as transformer
 import os
 import types
 
-import pycheck
-import varbindings
+from sourcecompile import compile_via_source as compile
+
+import cappython.pycheck as pycheck
+import cappython.varbindings as varbindings
 
 
 class VerifyError(Exception):
@@ -60,7 +62,7 @@ class Environment(object):
 
     def bind(self, name, value):
         assert type(name) is str
-        assert not name.startswith("_")
+        assert not name.startswith("_") or pycheck.is_special_attr(name), name
         self._module.__dict__[name] = value
 
     def set_importer(self, func):
@@ -77,9 +79,10 @@ class Evaluator(object):
     #   interpreter will open the named file when formatting a
     #   traceback.
     # - warn_only: This converts the checks' errors to warnings.
-    def __init__(self, use_filename, warn_only):
+    def __init__(self, use_filename, warn_only, parser=transformer.parse):
         self._use_filename = use_filename
         self._warn_only = warn_only
+        self._parse = parser
 
     def exec_code(self, source_code, builtins, filename=None):
         if not self._use_filename or filename is None:
@@ -101,7 +104,7 @@ class Evaluator(object):
         assert type(builtins) is Environment
         module = types.ModuleType("__safe_eval_module__")
         module.__dict__["__builtins__"] = builtins._module
-        tree = compiler.parse(source_code)
+        tree = self._parse(source_code)
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
         if len(log) > 0:
@@ -114,7 +117,7 @@ class Evaluator(object):
                 assert binding.is_read
                 if var_name not in builtins._module.__dict__:
                     print code_filename, "unbound:", var_name
-        code = compile(source_code, code_filename, "exec")
+        code = compile(tree, code_filename, "exec")
         exec code in module.__dict__
         return module
 

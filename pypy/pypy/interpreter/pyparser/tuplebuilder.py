@@ -1,5 +1,5 @@
 
-from grammar import AbstractBuilder, AbstractContext, Parser
+from pypybits.grammar import AbstractBuilder, AbstractContext, Parser
 
 class StackElement:
     """wraps TupleBuilder's tuples"""

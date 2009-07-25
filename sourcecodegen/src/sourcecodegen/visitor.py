@@ -1,6 +1,6 @@
 import sys
 
-import ast2 as ast
+import pypybits.ast as ast
 
 from cStringIO import StringIO
 

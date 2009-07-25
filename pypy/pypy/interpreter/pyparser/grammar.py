@@ -8,8 +8,9 @@ KleeneStar   : as in S -> A* or S -> A+
 Token       : a lexer token
 """
 try:
-    from pypy.interpreter.baseobjspace import Wrappable
-    from pypy.interpreter.pyparser.pytoken import NULLTOKEN
+#    from pypy.interpreter.baseobjspace import Wrappable
+#    from pypy.interpreter.pyparser.pytoken import NULLTOKEN
+    raise ImportError
 except ImportError:
     # allows standalone testing
     Wrappable = object
@@ -18,7 +19,7 @@ except ImportError:
 NO_ERROR = 0
 ERROR_EXPECTED_INDENT = 1
 
-from syntaxtree import SyntaxNode, TempSyntaxNode, TokenNode
+from pypybits.syntaxtree import SyntaxNode, TempSyntaxNode, TokenNode
 
 
 DEBUG = 0

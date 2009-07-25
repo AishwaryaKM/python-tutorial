@@ -25,8 +25,10 @@ parseFile(path) -> AST
 #   http://www.opensource.org/licenses/bsd-license.html
 # and replace OWNER, ORGANIZATION, and YEAR as appropriate.
 
-from compiler.ast import *
-import parser
+# from compiler.ast import *
+from pypybits.ast import *
+# import parser
+import fakeparser as parser
 import symbol
 import token
 import sys
@@ -34,8 +36,10 @@ import sys
 class WalkerError(StandardError):
     pass
 
-from compiler.consts import CO_VARARGS, CO_VARKEYWORDS
-from compiler.consts import OP_ASSIGN, OP_DELETE, OP_APPLY
+# from compiler.consts import CO_VARARGS, CO_VARKEYWORDS
+from pypybits.compilerconsts import CO_VARARGS, CO_VARKEYWORDS
+# from compiler.consts import OP_ASSIGN, OP_DELETE, OP_APPLY
+from pypybits.compilerconsts import OP_ASSIGN, OP_DELETE, OP_APPLY
 
 def parseFile(path):
     f = open(path, "U")

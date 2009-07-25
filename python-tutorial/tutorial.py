@@ -1,12 +1,12 @@
 
-import parser2 as parser
-import token
-import symbol
 from StringIO import StringIO
-import safeeval2 as safeeval
 import functools
+import fakeparser as parser
+import cappython.safeeval as safeeval
+import symbol
+import token
 import traceback
-import transformer2 as transformer
+import pypybits.transformer as transformer
 
 
 def _replace_node(pattern, node_type, replacement):
