@@ -32,6 +32,6 @@
      "pypybits/pythonlexer.py"),
     ("pypy/pypy/interpreter/pyparser/pytoken.py", "pypybits/pytoken.py"),
     ("pypy/pypy/interpreter/pyparser/pytokenize.py", "pypybits/pytokenize.py"),
-    ("pypy/pypy/interpreter/pyparser/symbol.py", "python-tutorial/symbol2.py"),
+    ("pypy/pypy/interpreter/pyparser/symbol.py", "pypybits/symbol.py"),
     ("pypy/pypy/interpreter/pyparser/syntaxtree.py", "pypybits/syntaxtree.py"),
  ]
