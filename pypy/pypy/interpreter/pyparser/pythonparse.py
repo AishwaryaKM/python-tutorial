@@ -7,7 +7,7 @@ using file_input, single_input and eval_input targets
 # from pypy.interpreter import gateway
 # from pypy.interpreter.error import OperationError
 # from pypy.interpreter.pyparser.error import SyntaxError, IndentationError
-from error3 import SyntaxError, IndentationError
+from pypybits.error import SyntaxError, IndentationError
 # from pypy.interpreter.pyparser.pythonlexer import Source, match_encoding_declaration
 from pythonlexer2 import Source, match_encoding_declaration
 # from pypy.interpreter.astcompiler.consts import CO_FUTURE_WITH_STATEMENT

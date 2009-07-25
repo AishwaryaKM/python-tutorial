@@ -6,7 +6,7 @@ import sys
 from codeop import PyCF_DONT_IMPLY_DEDENT
 
 from pypybits.grammar import TokenSource, Token, AbstractContext, Parser
-from error3 import SyntaxError
+from pypybits.error import SyntaxError
 
 import pytoken2 as pytoken
 
