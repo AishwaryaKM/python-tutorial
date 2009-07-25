@@ -21,7 +21,6 @@ import os
 import types
 
 from sourcecompile import compile_via_source as compile
-# from pycodegen2 import compile
 
 import cappython.pycheck as pycheck
 import cappython.varbindings as varbindings
