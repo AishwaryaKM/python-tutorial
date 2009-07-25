@@ -5,7 +5,7 @@ import struct
 import sys
 from cStringIO import StringIO
 
-import ast2 as ast
+import pypybits.ast as ast
 from transformer2 import parse
 from pypybits.visitor import walk
 import syntax2 as syntax

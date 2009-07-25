@@ -3,7 +3,7 @@
 """
 
 from pypybits.visitor import walk
-import ast2 as ast
+import pypybits.ast as ast
 
 def is_future(stmt):
     """Return true if statement is a well-formed future statement"""

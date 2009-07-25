@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import ast2 as ast
+import pypybits.ast as ast
 
 
 def get_only(lst):

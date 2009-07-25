@@ -9,7 +9,7 @@ But it seems clearer to write checkers that use the AST to detect
 errors.
 """
 
-import ast2 as ast
+import pypybits.ast as ast
 from pypybits.visitor import walk
 
 def check(tree, multi=None):
