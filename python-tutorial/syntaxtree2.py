@@ -6,9 +6,7 @@
 # #    from pysymbol import sym_values
 #     from pytoken import tok_values
 
-from uid2 import uid
-
-from uid2 import uid
+from pypybits.uid import uid
 
 class AbstractSyntaxVisitor(object):
     def visit_syntaxnode( self, node ):
