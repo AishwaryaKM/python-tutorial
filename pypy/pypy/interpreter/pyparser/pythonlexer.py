@@ -5,13 +5,10 @@ analyser in grammar.py
 import sys
 from codeop import PyCF_DONT_IMPLY_DEDENT
 
-# from pypy.interpreter.pyparser.grammar import TokenSource, Token, AbstractContext, Parser
-from pyparser.grammar import TokenSource, Token, AbstractContext, Parser
-# from pypy.interpreter.pyparser.error import SyntaxError
-from pyparser.error import SyntaxError
+from grammar import TokenSource, Token, AbstractContext, Parser
+from error import SyntaxError
 
-# import pytoken
-import pyparser.pytoken as pytoken
+import pytoken
 
 # Don't import string for that ...
 NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -52,14 +49,10 @@ def match_encoding_declaration(comment):
     return None
 
 ################################################################################
-# from pypy.interpreter.pyparser import pytoken
-import pyparser.pytoken as pytoken
-# from pytokenize import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
-#      single_quoted, pseudoDFA
-from pyparser.pytokenize import tabsize, whiteSpaceDFA, triple_quoted, \
-    endDFAs, single_quoted, pseudoDFA
-# import automata
-import pyparser.automata as automata
+import pytoken
+from pytokenize import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
+     single_quoted, pseudoDFA
+import automata
 
 
 class TokenError(SyntaxError):

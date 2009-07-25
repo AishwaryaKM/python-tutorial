@@ -4,28 +4,16 @@
 helper functions are provided that use the grammar to parse
 using file_input, single_input and eval_input targets
 """
-# from pypy.interpreter import gateway
-# from pypy.interpreter.error import OperationError
-# from pypy.interpreter.pyparser.error import SyntaxError, IndentationError
-from pyparser.error import SyntaxError, IndentationError
-# from pypy.interpreter.pyparser.pythonlexer import Source, match_encoding_declaration
-from pyparser.pythonlexer import Source, match_encoding_declaration
-# from pypy.interpreter.astcompiler.consts import CO_FUTURE_WITH_STATEMENT
+from error import SyntaxError, IndentationError
+from pythonlexer import Source, match_encoding_declaration
 from pypybits.astconsts import CO_FUTURE_WITH_STATEMENT
-# import pypy.interpreter.pyparser.pytoken as pytoken
-import pyparser.pytoken as pytoken
-# import pypy.interpreter.pyparser.ebnfparse as ebnfparse
-import pyparser.ebnfparse as ebnfparse
-# from pypy.interpreter.pyparser.ebnflexer import GrammarSource
-from pyparser.ebnflexer import GrammarSource
-# from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
-from pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
-# import pypy.interpreter.pyparser.grammar as grammar
-import pyparser.grammar as grammar
-# from pypy.interpreter.pyparser.pythonutil import build_parser_for_version
-from pyparser.pythonutil import build_parser_for_version
-# from pypy.interpreter.pyparser import symbol
-import pyparser.symbol as symbol
+import pytoken
+import ebnfparse
+from ebnflexer import GrammarSource
+from ebnfgrammar import GRAMMAR_GRAMMAR
+import grammar
+from pythonutil import build_parser_for_version
+import symbol
 
 from codeop import PyCF_DONT_IMPLY_DEDENT
 

@@ -1,7 +1,5 @@
-# from grammar import Token, GrammarProxy
-from pyparser.grammar import Token, GrammarProxy
-# from grammar import AbstractBuilder, AbstractContext
-from pyparser.grammar import AbstractBuilder, AbstractContext
+from grammar import Token, GrammarProxy
+from grammar import AbstractBuilder, AbstractContext
 
 
 ORDA = ord("A")

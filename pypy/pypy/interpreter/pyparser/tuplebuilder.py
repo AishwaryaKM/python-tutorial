@@ -1,5 +1,5 @@
 
-from pyparser.grammar import AbstractBuilder, AbstractContext, Parser
+from grammar import AbstractBuilder, AbstractContext, Parser
 
 class StackElement:
     """wraps TupleBuilder's tuples"""
