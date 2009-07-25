@@ -1,1 +1,0 @@
-/usr/share/python-support/python-simplejson/simplejson/tests/test_encode_basestring_ascii.py

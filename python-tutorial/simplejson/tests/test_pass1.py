@@ -1,1 +1,0 @@
-/usr/share/python-support/python-simplejson/simplejson/tests/test_pass1.py
