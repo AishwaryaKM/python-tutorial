@@ -1,28 +1,11 @@
 
 
-from google.appengine.api import users
-from google.appengine.ext import db
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
-from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch
-
-import cgi
-import functools
-import os
-import sys
-import logging
-
-import pycheck2 as pycheck
-import transformer2 as transformer
-import varbindings2 as varbindings
-import linecache
-import traceback
-from pprint import pformat
-
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
 import simplejson
-
+import traceback
 import tutorial
 
 
@@ -61,8 +44,7 @@ class WebService(webapp.RequestHandler):
             return unicode(traceback.format_exc())
 
     def get_constants(self):
-        return {"logout": users.create_logout_url("about:blank"),
-                "login": users.create_login_url("about:blank")}
+        return {}
 
     def post(self):
         string = self.request.body.decode("utf-8")

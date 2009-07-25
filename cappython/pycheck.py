@@ -16,12 +16,12 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-from compiler import ast
-import compiler
+import ast2 as ast
+import compiler2 as compiler
 import linecache
 import sys
 
-import varbindings
+import cappython.varbindings as varbindings
 
 
 def find_all(node, node_type):
@@ -62,6 +62,7 @@ allowed_vars = frozenset([
     "__add__", "__sub__", "__iadd__", "__isub__",
     # Global variables
     "__name__", "__all__", "__version__", "__debug__",
+    "__print__", "__print_comma__", "__print_file__", "__print_file_comma__",
     ])
 
 def is_special_var(name):

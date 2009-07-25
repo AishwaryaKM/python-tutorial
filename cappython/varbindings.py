@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-from compiler import ast
+import ast2 as ast
 
 
 def get_only(lst):
