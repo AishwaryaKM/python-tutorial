@@ -17,7 +17,7 @@
 # 02110-1301, USA.
 
 import pypybits.ast as ast
-import compiler2 as compiler
+import pypybits.compiler as compiler
 import linecache
 import sys
 
