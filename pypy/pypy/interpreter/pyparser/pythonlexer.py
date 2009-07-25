@@ -6,12 +6,12 @@ import sys
 from codeop import PyCF_DONT_IMPLY_DEDENT
 
 # from pypy.interpreter.pyparser.grammar import TokenSource, Token, AbstractContext, Parser
-from pypybits.grammar import TokenSource, Token, AbstractContext, Parser
+from pyparser.grammar import TokenSource, Token, AbstractContext, Parser
 # from pypy.interpreter.pyparser.error import SyntaxError
-from pypybits.error import SyntaxError
+from pyparser.error import SyntaxError
 
 # import pytoken
-import pypybits.pytoken as pytoken
+import pyparser.pytoken as pytoken
 
 # Don't import string for that ...
 NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -53,13 +53,13 @@ def match_encoding_declaration(comment):
 
 ################################################################################
 # from pypy.interpreter.pyparser import pytoken
-import pypybits.pytoken as pytoken
+import pyparser.pytoken as pytoken
 # from pytokenize import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
 #      single_quoted, pseudoDFA
-from pypybits.pytokenize import tabsize, whiteSpaceDFA, triple_quoted, \
+from pyparser.pytokenize import tabsize, whiteSpaceDFA, triple_quoted, \
     endDFAs, single_quoted, pseudoDFA
 # import automata
-import pypybits.automata as automata
+import pyparser.automata as automata
 
 
 class TokenError(SyntaxError):

@@ -1,5 +1,5 @@
-from pypybits.pythonparse import make_pyparser
-from pypybits.tuplebuilder import TupleBuilder
+from pyparser.pythonparse import make_pyparser
+from pyparser.tuplebuilder import TupleBuilder
 import symbol
 import token
 
