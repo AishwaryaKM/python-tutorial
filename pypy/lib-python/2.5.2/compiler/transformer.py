@@ -37,9 +37,9 @@ class WalkerError(StandardError):
     pass
 
 # from compiler.consts import CO_VARARGS, CO_VARKEYWORDS
-from consts2 import CO_VARARGS, CO_VARKEYWORDS
+from pypybits.compilerconsts import CO_VARARGS, CO_VARKEYWORDS
 # from compiler.consts import OP_ASSIGN, OP_DELETE, OP_APPLY
-from consts2 import OP_ASSIGN, OP_DELETE, OP_APPLY
+from pypybits.compilerconsts import OP_ASSIGN, OP_DELETE, OP_APPLY
 
 def parseFile(path):
     f = open(path, "U")

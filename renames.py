@@ -20,4 +20,5 @@
     ("pypy/lib-python/2.5.2/compiler/transformer.py",
      "pypybits/transformer.py"),
     ("pypy/lib-python/2.5.2/compiler/__init__.py", "pypybits/compiler.py"),
+    ("pypy/lib-python/2.5.2/compiler/consts.py", "pypybits/compilerconsts.py"),
  ]

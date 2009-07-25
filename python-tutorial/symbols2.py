@@ -1,7 +1,8 @@
 """Module symbol-table generator"""
 
 import pypybits.ast as ast
-from consts2 import SC_LOCAL, SC_GLOBAL, SC_FREE, SC_CELL, SC_UNKNOWN
+from pypybits.compilerconsts\
+    import SC_LOCAL, SC_GLOBAL, SC_FREE, SC_CELL, SC_UNKNOWN
 from misc2 import mangle
 import types
 
