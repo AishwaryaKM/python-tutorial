@@ -22,4 +22,6 @@
     ("pypy/lib-python/2.5.2/compiler/__init__.py", "pypybits/compiler.py"),
     ("pypy/lib-python/2.5.2/compiler/consts.py", "pypybits/compilerconsts.py"),
     ("pypy/pypy/interpreter/astcompiler/consts.py", "pypybits/astconsts.py"),
+    ("pypy/pypy/interpreter/pyparser/ebnfgrammar.py", 
+     "pypybits/ebnfgrammar.py"),
  ]

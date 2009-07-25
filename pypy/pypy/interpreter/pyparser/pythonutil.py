@@ -11,7 +11,7 @@ import os
 # from pypy.interpreter.pyparser.pytoken import setup_tokens
 from pytoken2 import setup_tokens
 # from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
-from ebnfgrammar2 import GRAMMAR_GRAMMAR
+from pypybits.ebnfgrammar import GRAMMAR_GRAMMAR
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource
 from ebnflexer2 import GrammarSource
 # from pypy.interpreter.pyparser.ebnfparse import EBNFBuilder

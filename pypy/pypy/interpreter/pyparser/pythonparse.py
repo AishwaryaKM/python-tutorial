@@ -20,7 +20,7 @@ import ebnfparse2 as ebnfparse
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource
 from ebnflexer2 import GrammarSource
 # from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
-from ebnfgrammar2 import GRAMMAR_GRAMMAR
+from pypybits.ebnfgrammar import GRAMMAR_GRAMMAR
 # import pypy.interpreter.pyparser.grammar as grammar
 import pypybits.grammar as grammar
 # from pypy.interpreter.pyparser.pythonutil import build_parser_for_version

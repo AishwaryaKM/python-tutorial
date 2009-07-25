@@ -4,7 +4,7 @@ analyser in grammar.py
 """
 
 from pypybits.grammar import TokenSource, Token, AbstractContext
-from ebnfgrammar2 import GRAMMAR_GRAMMAR as G
+from pypybits.ebnfgrammar import GRAMMAR_GRAMMAR as G
 
 
 def match_symbol( input, start, stop ):
