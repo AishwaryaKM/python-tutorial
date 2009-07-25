@@ -4,31 +4,42 @@
 helper functions are provided that use the grammar to parse
 using file_input, single_input and eval_input targets
 """
-from pypy.interpreter import gateway
-from pypy.interpreter.error import OperationError
-from pypy.interpreter.pyparser.error import SyntaxError, IndentationError
-from pypy.interpreter.pyparser.pythonlexer import Source, match_encoding_declaration
-from pypy.interpreter.astcompiler.consts import CO_FUTURE_WITH_STATEMENT
-import pypy.interpreter.pyparser.pytoken as pytoken
-import pypy.interpreter.pyparser.ebnfparse as ebnfparse
-from pypy.interpreter.pyparser.ebnflexer import GrammarSource
-from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
-import pypy.interpreter.pyparser.grammar as grammar
-from pypy.interpreter.pyparser.pythonutil import build_parser_for_version
-from pypy.interpreter.pyparser import symbol
+# from pypy.interpreter import gateway
+# from pypy.interpreter.error import OperationError
+from error2 import OperationError
+# from pypy.interpreter.pyparser.error import SyntaxError, IndentationError
+from error3 import SyntaxError, IndentationError
+# from pypy.interpreter.pyparser.pythonlexer import Source, match_encoding_declaration
+from pythonlexer2 import Source, match_encoding_declaration
+# from pypy.interpreter.astcompiler.consts import CO_FUTURE_WITH_STATEMENT
+from consts3 import CO_FUTURE_WITH_STATEMENT
+# import pypy.interpreter.pyparser.pytoken as pytoken
+import pytoken2 as pytoken
+# import pypy.interpreter.pyparser.ebnfparse as ebnfparse
+import ebnfparse2 as ebnfparse
+# from pypy.interpreter.pyparser.ebnflexer import GrammarSource
+from ebnflexer2 import GrammarSource
+# from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
+from ebnfgrammar2 import GRAMMAR_GRAMMAR
+# import pypy.interpreter.pyparser.grammar as grammar
+import pypybits.grammar as grammar
+# from pypy.interpreter.pyparser.pythonutil import build_parser_for_version
+from pypybits.pythonutil import build_parser_for_version
+# from pypy.interpreter.pyparser import symbol
+import symbol2 as symbol
 
 from codeop import PyCF_DONT_IMPLY_DEDENT
 
 
 ##  files encoding management ############################################
-_recode_to_utf8 = gateway.applevel(r'''
-    def _recode_to_utf8(text, encoding):
-        return unicode(text, encoding).encode("utf-8")
-''').interphook('_recode_to_utf8')
+# _recode_to_utf8 = gateway.applevel(r'''
+#     def _recode_to_utf8(text, encoding):
+#         return unicode(text, encoding).encode("utf-8")
+# ''').interphook('_recode_to_utf8')
 
-def recode_to_utf8(space, text, encoding):
-    return space.str_w(_recode_to_utf8(space, space.wrap(text),
-                                          space.wrap(encoding)))
+# def recode_to_utf8(space, text, encoding):
+#     return space.str_w(_recode_to_utf8(space, space.wrap(text),
+#                                           space.wrap(encoding)))
 def _normalize_encoding(encoding):
     """returns normalized name for <encoding>
 
