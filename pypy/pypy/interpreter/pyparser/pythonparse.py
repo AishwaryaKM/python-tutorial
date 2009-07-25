@@ -12,7 +12,7 @@ from error3 import SyntaxError, IndentationError
 # from pypy.interpreter.pyparser.pythonlexer import Source, match_encoding_declaration
 from pythonlexer2 import Source, match_encoding_declaration
 # from pypy.interpreter.astcompiler.consts import CO_FUTURE_WITH_STATEMENT
-from consts3 import CO_FUTURE_WITH_STATEMENT
+from pypybits.astconsts import CO_FUTURE_WITH_STATEMENT
 # import pypy.interpreter.pyparser.pytoken as pytoken
 import pytoken2 as pytoken
 # import pypy.interpreter.pyparser.ebnfparse as ebnfparse
