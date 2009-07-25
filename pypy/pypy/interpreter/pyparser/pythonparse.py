@@ -18,7 +18,7 @@ import pytoken2 as pytoken
 # import pypy.interpreter.pyparser.ebnfparse as ebnfparse
 import ebnfparse2 as ebnfparse
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource
-from ebnflexer2 import GrammarSource
+from pypybits.ebnflexer import GrammarSource
 # from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
 from pypybits.ebnfgrammar import GRAMMAR_GRAMMAR
 # import pypy.interpreter.pyparser.grammar as grammar
