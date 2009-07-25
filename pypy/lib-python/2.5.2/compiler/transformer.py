@@ -28,7 +28,7 @@ parseFile(path) -> AST
 # from compiler.ast import *
 from pypybits.ast import *
 # import parser
-import parser2 as parser
+import fakeparser as parser
 import symbol
 import token
 import sys

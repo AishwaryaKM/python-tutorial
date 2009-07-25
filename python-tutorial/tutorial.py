@@ -1,7 +1,7 @@
 
 from StringIO import StringIO
 import functools
-import parser2 as parser
+import fakeparser as parser
 import cappython.safeeval as safeeval
 import symbol
 import token
