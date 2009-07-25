@@ -9,7 +9,7 @@ import os
 
 # from pypy.interpreter.pyparser.grammar import Parser
 # from pypy.interpreter.pyparser.pytoken import setup_tokens
-from pytoken2 import setup_tokens
+from pypybits.pytoken import setup_tokens
 # from pypy.interpreter.pyparser.ebnfgrammar import GRAMMAR_GRAMMAR
 from pypybits.ebnfgrammar import GRAMMAR_GRAMMAR
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource

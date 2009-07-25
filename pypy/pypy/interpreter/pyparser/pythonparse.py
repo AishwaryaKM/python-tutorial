@@ -13,7 +13,7 @@ rom pypybits.pythonlexer import Source, match_encoding_declaration
 # from pypy.interpreter.astcompiler.consts import CO_FUTURE_WITH_STATEMENT
 from pypybits.astconsts import CO_FUTURE_WITH_STATEMENT
 # import pypy.interpreter.pyparser.pytoken as pytoken
-import pytoken2 as pytoken
+import pypybits.pytoken as pytoken
 # import pypy.interpreter.pyparser.ebnfparse as ebnfparse
 import pypybits.ebnfparse as ebnfparse
 # from pypy.interpreter.pyparser.ebnflexer import GrammarSource

@@ -11,7 +11,7 @@ from pypybits.grammar import TokenSource, Token, AbstractContext, Parser
 from pypybits.error import SyntaxError
 
 # import pytoken
-import pytoken2 as pytoken
+import pypybits.pytoken as pytoken
 
 # Don't import string for that ...
 NAMECHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_'
@@ -53,7 +53,7 @@ def match_encoding_declaration(comment):
 
 ################################################################################
 # from pypy.interpreter.pyparser import pytoken
-import pytoken2 as pytoken
+import pypybits.pytoken as pytoken
 #from pytokenize import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
      single_quoted, pseudoDFA
 from pytokenize2 import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \

@@ -30,4 +30,5 @@
     ("pypy/lib-python/2.5.2/compiler/misc.py", "pypybits/misc.py"),
     ("pypy/pypy/interpreter/pyparser/pythonlexer.py", 
      "pypybits/pythonlexer.py"),
+    ("pypy/pypy/interpreter/pyparser/pytoken.py", "pypybits/pytoken.py"),
  ]
