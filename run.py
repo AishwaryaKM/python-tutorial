@@ -21,10 +21,10 @@ def replace(source, destination):
     if not os.path.exists(os.path.dirname(destination)):
         os.makedirs(os.path.dirname(destination))
     if os.path.isdir(source):
-        subprocess.check_call(["rsync", "-a", source.rstrip("/") + "/",
+        subprocess.check_call(["rsync", "-q", "-a", source.rstrip("/") + "/",
                                destination.rstrip("/") + "/"])
     else:
-        subprocess.check_call(["rsync", source, destination])
+        subprocess.check_call(["rsync", "-q", source, destination])
 
 def format(template, *args, **kwargs):
     assert len(args) == 0 or len(kwargs) == 0, (args, kwargs)
@@ -66,7 +66,8 @@ def run_development_server(sdk_path):
         stage_dir = os.path.join(temp_dir, "staging")
         target_dir = os.path.join(temp_dir, "running")
         _build(stage_dir)
-        subprocess.check_call(["rsync", "-a", stage_dir.rstrip("/") + "/",
+        subprocess.check_call(["rsync", "-q", "-a", 
+                               stage_dir.rstrip("/") + "/",
                                target_dir.rstrip("/") + "/"])
         child = subprocess.Popen(
             ["python2.5", 
@@ -81,7 +82,7 @@ def run_development_server(sdk_path):
                     except Exception, e:
                         print "Build error.  Transient?", str(e)
                     else:
-                        subprocess.check_call(["rsync", "-a", "-i",
+                        subprocess.check_call(["rsync", "-r", "-i", "-c",
                                                stage_dir.rstrip("/") + "/",
                                                target_dir.rstrip("/") + "/"])
                     time.sleep(1)
