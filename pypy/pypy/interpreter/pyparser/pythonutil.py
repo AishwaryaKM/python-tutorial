@@ -18,7 +18,7 @@ from ebnflexer2 import GrammarSource
 from ebnfparse2 import EBNFBuilder
 
 # from pypy.interpreter.pyparser.tuplebuilder import TupleBuilder
-from tuplebuilder2 import TupleBuilder
+from pypybits.tuplebuilder import TupleBuilder
 
 PYTHON_VERSION = ".".join([str(i) for i in sys.version_info[:2]])
 
