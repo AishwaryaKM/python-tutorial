@@ -56,8 +56,8 @@ def match_encoding_declaration(comment):
 import pypybits.pytoken as pytoken
 #from pytokenize import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
      single_quoted, pseudoDFA
-from pytokenize2 import tabsize, whiteSpaceDFA, triple_quoted, endDFAs, \
-     single_quoted, pseudoDFA
+from pypybits.pytokenize import tabsize, whiteSpaceDFA, triple_quoted, \
+    endDFAs, single_quoted, pseudoDFA
 # import automata
 import pypybits.automata as automata
 

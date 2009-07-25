@@ -31,4 +31,5 @@
     ("pypy/pypy/interpreter/pyparser/pythonlexer.py", 
      "pypybits/pythonlexer.py"),
     ("pypy/pypy/interpreter/pyparser/pytoken.py", "pypybits/pytoken.py"),
+    ("pypy/pypy/interpreter/pyparser/pytokenize.py", "pypybits/pytokenize.py"),
  ]

@@ -17,7 +17,9 @@ $Id: pytokenize.py,v 1.3 2003/10/03 16:31:53 jriehl Exp $
 """
 # ______________________________________________________________________
 
-from pypy.interpreter.pyparser import automata
+from __future__ import generators
+# from pypy.interpreter.pyparser import automata
+import pypybits.automata as automata
 
 __all__ = [ "tokenize" ]
 
