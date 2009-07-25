@@ -6,7 +6,6 @@ using file_input, single_input and eval_input targets
 """
 # from pypy.interpreter import gateway
 # from pypy.interpreter.error import OperationError
-from error2 import OperationError
 # from pypy.interpreter.pyparser.error import SyntaxError, IndentationError
 from error3 import SyntaxError, IndentationError
 # from pypy.interpreter.pyparser.pythonlexer import Source, match_encoding_declaration
