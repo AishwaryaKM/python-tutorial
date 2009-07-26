@@ -39,6 +39,10 @@ body
 {
     -moz-border-radius-topleft: 1em;
     -moz-border-radius-topright: 1em;
+    -webkit-border-top-right-radius: 1em;
+    -webkit-border-top-left-radius: 1em;
+    border-top-left-radius: 1em;
+    border-top-right-radius: 1em;
     padding-bottom: 0.2em;
     margin-bottom: 0.2em;
 }
@@ -47,6 +51,10 @@ body
 {
     -moz-border-radius-bottomleft: 1em;
     -moz-border-radius-bottomright: 1em;
+    -webkit-border-bottom-left-radius: 1em;
+    -webkit-border-bottom-right-radius: 1em;
+    border-bottom-left-radius: 1em;
+    border-bottom-right-radius: 1em;
     margin-bottom: 0.5em;
 }
 
