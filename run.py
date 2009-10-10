@@ -7,6 +7,7 @@ Action "dev" builds the system and runs the development webserver
 Action "push" builds the system and pushes it to the Google App Engine servers
 """
 
+from lxml import etree
 import contextlib
 import optparse
 import os
@@ -26,26 +27,49 @@ def replace(source, destination):
     else:
         subprocess.check_call(["rsync", "-q", source, destination])
 
+def get1(items):
+    items = list(items)
+    assert len(items) == 1, items
+    return items[0]
+
 def format(template, *args, **kwargs):
     assert len(args) == 0 or len(kwargs) == 0, (args, kwargs)
     if len(args) > 0:
         return template % args
     return template % kwargs
 
-def _build(target_dir):
-    assert not os.path.exists(target_dir), target_dir
-    source_dir = os.path.dirname(os.path.abspath(__file__))
-    fh = open(os.path.join(source_dir, "renames.py"))
+def read_file(path):
+    fh = open(path, "rb")
     try:
-        rename_data = fh.read()
+        return fh.read()
     finally:
         fh.close()
+
+def write_file(path, data):
+    fh = open(path, "wb")
+    try:
+        fh.write(data)
+    finally:
+        fh.close()
+
+def _build_python(target_dir):
+    assert not os.path.exists(target_dir), target_dir
+    source_dir = os.path.dirname(os.path.abspath(__file__))
+    rename_data = read_file(os.path.join(source_dir, "renames.py"))
     for rel_source, rel_dest in eval(rename_data):
         replace(os.path.abspath(os.path.join(source_dir, rel_source)), 
                 os.path.abspath(os.path.join(target_dir, rel_dest)))
 
-def _build_java(target_dir):
-    pass
+def _build_java(target_dir, sdk_path):
+    assert not os.path.exists(target_dir), target_dir
+    source_dir = os.path.dirname(os.path.abspath(__file__))
+    java_dir = os.path.join(source_dir, "java-environment")
+    build_xml = etree.fromstring(
+        read_file(os.path.join(java_dir, "build.template.xml")))
+    os.makedirs(target_dir)
+    sdk_prop = get1(build_xml.xpath(".//property[@name = 'sdk.dir']"))
+    sdk_prop.attrib["location"] = sdk_path
+    write_file(os.path.join(target_dir, "build.xml"), etree.tostring(build_xml))
 
 @contextlib.contextmanager
 def mkdtemp(*args, **kwargs):
@@ -64,24 +88,21 @@ def interruptable():
     except: #KeyboardInterrupt, SystemExit, etc.
         pass
 
-def run_development_server_python(sdk_path):
+def _run_development_server(build_func, dev_appserver):
     with mkdtemp() as temp_dir:
         stage_dir = os.path.join(temp_dir, "staging")
         target_dir = os.path.join(temp_dir, "running")
-        _build(stage_dir)
+        build_func(stage_dir)
         subprocess.check_call(["rsync", "-q", "-a", 
                                stage_dir.rstrip("/") + "/",
                                target_dir.rstrip("/") + "/"])
-        child = subprocess.Popen(
-            ["python2.5", 
-             os.path.join(sdk_path, "dev_appserver.py"),
-             target_dir])
+        child = subprocess.Popen(dev_appserver + [target_dir])
         try:
             with interruptable():
                 while child.poll() is None:
                     shutil.rmtree(stage_dir)
                     try:
-                        _build(stage_dir)
+                        build_func(stage_dir)
                     except Exception, e:
                         print "Build error.  Transient?", str(e)
                     else:
@@ -92,18 +113,23 @@ def run_development_server_python(sdk_path):
         finally:
             os.kill(child.pid, signal.SIGKILL)
 
+def run_development_server_python(sdk_path):
+    _run_development_server(
+        _build_python, 
+        ["python2.5", os.path.join(sdk_path, "dev_appserver.py")])
+
+def run_development_server_java(sdk_path):
+    _run_development_server(
+        lambda a: _build_java(a, sdk_path),
+        ["sh", "-c", 'cd "$1" && ant runserver', "-"])
+
 def deploy_live_python(sdk_path):
     with mkdtemp() as temp_dir:
         target_dir = os.path.join(temp_dir, "python-tutorial")
-        _build(target_dir)
-        try:
-            subprocess.check_call(["python2.5", 
-                                   os.path.join(sdk_path, "appcfg.py"),
-                                   "update", target_dir])
-        except Exception:
-            raise
-        except:
-            pass
+        _build_python(target_dir)
+        subprocess.check_call(["python2.5", 
+                               os.path.join(sdk_path, "appcfg.py"),
+                               "update", target_dir])
 
 def main(prog, argv):
     parser = optparse.OptionParser(__doc__, prog=prog)
