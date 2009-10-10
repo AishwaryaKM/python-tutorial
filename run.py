@@ -74,6 +74,10 @@ def _build_java(target_dir, sdk_path):
         replace(java_dir, target_dir)
         replace(os.path.join(python_build_dir, "static"),
                 os.path.join(target_dir, "war", "static"))
+        tutorial_dir = os.path.join(
+            target_dir, "war", "WEB-INF", "python-tutorial")
+        replace(os.path.join(python_build_dir), tutorial_dir)
+        shutil.rmtree(os.path.join(tutorial_dir, "static"))
         build_xml_path = os.path.join(target_dir, "build.xml")
         build_xml = etree.fromstring(read_file(build_xml_path))
         sdk_prop = get1(build_xml.xpath(".//property[@name = 'sdk.dir']"))
