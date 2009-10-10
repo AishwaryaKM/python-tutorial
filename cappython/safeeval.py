@@ -19,6 +19,7 @@
 import pypybits.transformer as compiler
 import os
 import types
+import __builtin__
 
 import cappython.pycheck as pycheck
 import cappython.varbindings as varbindings
@@ -164,7 +165,7 @@ def safe_builtins():
                  "isinstance",
                  "object",
                  ):
-        yield name, __builtins__[name]
+        yield name, getattr(__builtin__, name)
     yield "hasattr", safe_hasattr
     # non-standard
     yield "type_is", type_is
