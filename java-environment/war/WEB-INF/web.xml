@@ -1,13 +1,21 @@
 <web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
     <servlet>
-        <servlet-name>guestbook</servlet-name>
-        <servlet-class>guestbook.GuestbookServlet</servlet-class>
+        <servlet-name>jython-tutorial-ws</servlet-name>
+        <servlet-class>JythonTutorialServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>cdn</servlet-name>
+        <servlet-class>CdnServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>guestbook</servlet-name>
-        <url-pattern>/guestbook</url-pattern>
+        <servlet-name>jython-tutorial-ws</servlet-name>
+        <url-pattern>/ws</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>cdn</servlet-name>
+        <url-pattern>/cdn/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
-        <welcome-file>/index.html</welcome-file>
+        <welcome-file>/static/index.html</welcome-file>
     </welcome-file-list>
 </web-app>

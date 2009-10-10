@@ -69,6 +69,8 @@ def _build_java(target_dir, sdk_path):
             read_file(os.path.join(source_dir, "python-tutorial", "app.yaml"))))
     java_dir = os.path.join(source_dir, "java-environment")
     replace(java_dir, target_dir)
+    replace(os.path.join(source_dir, "python-tutorial", "static"),
+            os.path.join(target_dir, "war", "static"))
     build_xml_path = os.path.join(target_dir, "build.xml")
     build_xml = etree.fromstring(read_file(build_xml_path))
     sdk_prop = get1(build_xml.xpath(".//property[@name = 'sdk.dir']"))
