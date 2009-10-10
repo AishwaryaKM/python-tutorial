@@ -63,32 +63,35 @@ def _build_python(target_dir):
 
 def _build_java(target_dir, sdk_path):
     assert not os.path.exists(target_dir), target_dir
-    source_dir = os.path.dirname(os.path.abspath(__file__))
-    app_yaml = get1(
-        yaml.load_all(
-            read_file(os.path.join(source_dir, "python-tutorial", "app.yaml"))))
-    java_dir = os.path.join(source_dir, "java-environment")
-    replace(java_dir, target_dir)
-    replace(os.path.join(source_dir, "python-tutorial", "static"),
-            os.path.join(target_dir, "war", "static"))
-    build_xml_path = os.path.join(target_dir, "build.xml")
-    build_xml = etree.fromstring(read_file(build_xml_path))
-    sdk_prop = get1(build_xml.xpath(".//property[@name = 'sdk.dir']"))
-    sdk_prop.attrib["location"] = sdk_path
-    write_file(build_xml_path, etree.tostring(build_xml))
-    appengine_xml_path = os.path.join(target_dir, "war", "WEB-INF",
-                                      "appengine-web.xml")
-    appengine_xml = etree.fromstring(read_file(appengine_xml_path))
-    NSMAP = {"gae": "http://appengine.google.com/ns/1.0"}
-    get1(
-        appengine_xml.xpath(
-            ".//gae:application", 
-            namespaces=NSMAP)).text = str(app_yaml["application"])
-    get1(
-        appengine_xml.xpath(
-            ".//gae:version", 
-            namespaces=NSMAP)).text = str(app_yaml["version"])
-    write_file(appengine_xml_path, etree.tostring(appengine_xml))
+    with mkdtemp() as temp_dir:
+        python_build_dir = os.path.join(temp_dir, "python_build")
+        _build_python(python_build_dir)
+        source_dir = os.path.dirname(os.path.abspath(__file__))
+        app_yaml = get1(
+            yaml.load_all(
+                read_file(os.path.join(python_build_dir, "app.yaml"))))
+        java_dir = os.path.join(source_dir, "java-environment")
+        replace(java_dir, target_dir)
+        replace(os.path.join(python_build_dir, "static"),
+                os.path.join(target_dir, "war", "static"))
+        build_xml_path = os.path.join(target_dir, "build.xml")
+        build_xml = etree.fromstring(read_file(build_xml_path))
+        sdk_prop = get1(build_xml.xpath(".//property[@name = 'sdk.dir']"))
+        sdk_prop.attrib["location"] = sdk_path
+        write_file(build_xml_path, etree.tostring(build_xml))
+        appengine_xml_path = os.path.join(target_dir, "war", "WEB-INF",
+                                          "appengine-web.xml")
+        appengine_xml = etree.fromstring(read_file(appengine_xml_path))
+        NSMAP = {"gae": "http://appengine.google.com/ns/1.0"}
+        get1(
+            appengine_xml.xpath(
+                ".//gae:application", 
+                namespaces=NSMAP)).text = str(app_yaml["application"])
+        get1(
+            appengine_xml.xpath(
+                ".//gae:version", 
+                namespaces=NSMAP)).text = str(app_yaml["version"])
+        write_file(appengine_xml_path, etree.tostring(appengine_xml))
 
 @contextlib.contextmanager
 def mkdtemp(*args, **kwargs):
