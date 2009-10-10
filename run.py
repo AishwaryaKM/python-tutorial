@@ -44,6 +44,9 @@ def _build(target_dir):
         replace(os.path.abspath(os.path.join(source_dir, rel_source)), 
                 os.path.abspath(os.path.join(target_dir, rel_dest)))
 
+def _build_java(target_dir):
+    pass
+
 @contextlib.contextmanager
 def mkdtemp(*args, **kwargs):
     temp_dir = tempfile.mkdtemp(*args, **kwargs)
@@ -61,7 +64,7 @@ def interruptable():
     except: #KeyboardInterrupt, SystemExit, etc.
         pass
 
-def run_development_server(sdk_path):
+def run_development_server_python(sdk_path):
     with mkdtemp() as temp_dir:
         stage_dir = os.path.join(temp_dir, "staging")
         target_dir = os.path.join(temp_dir, "running")
@@ -89,7 +92,7 @@ def run_development_server(sdk_path):
         finally:
             os.kill(child.pid, signal.SIGKILL)
 
-def deploy_live(sdk_path):
+def deploy_live_python(sdk_path):
     with mkdtemp() as temp_dir:
         target_dir = os.path.join(temp_dir, "python-tutorial")
         _build(target_dir)
@@ -105,17 +108,28 @@ def deploy_live(sdk_path):
 def main(prog, argv):
     parser = optparse.OptionParser(__doc__, prog=prog)
     parser.add_option("--sdk", dest="sdk")
+    parser.add_option("--java", dest="platform", const="java",
+                      default="python", action="store_const")
     options, args = parser.parse_args(argv)
     if len(args) == 0:
         parser.error("Missing: ACTION")
     action = args.pop(0)
     if len(args) > 0:
         parser.error(format("Unexpected: %r", args))
-    actions = {"dev": run_development_server,
-               "push": deploy_live}
+    if options.platform == "java":
+        actions = {"dev": run_development_server_java,
+                   "push": deploy_live_python}
+        default_sdk = os.path.join(os.path.expanduser("~"), "Desktop",
+                                   "appengine-java-sdk")
+    elif options.platform == "python":
+        actions = {"dev": run_development_server_python,
+                   "push": deploy_live_python}
+        default_sdk = os.path.join(os.path.expanduser("~"), "Desktop",
+                                   "google_appengine")
+    else:
+        raise NotImplementedError(options.platform)
     if options.sdk is None:
-        sdk_path = os.path.join(os.path.expanduser("~"), "Desktop",
-                                "google_appengine")
+        sdk_path = default_sdk
     else:
         sdk_path = options.sdk
     func = actions.get(action)
