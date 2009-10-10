@@ -43,9 +43,6 @@ class WebService(webapp.RequestHandler):
         except Exception, e:
             return unicode(traceback.format_exc())
 
-    def get_constants(self):
-        return {}
-
     def post(self):
         string = self.request.body.decode("utf-8")
         json = simplejson.loads(string)
