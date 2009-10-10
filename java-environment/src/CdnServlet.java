@@ -44,7 +44,6 @@ public class CdnServlet extends HttpServlet
         HashMap data = (HashMap)memcache.get(url);
         if (data == null)
 	    {
-		System.out.println("Cache miss for " + url);
 		data = new HashMap();
 		URL url_obj;
 		try

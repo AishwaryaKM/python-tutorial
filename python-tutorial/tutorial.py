@@ -136,3 +136,19 @@ def run_straight_cappython(code):
         return unicode(traceback.format_exc())
     return data.getvalue().decode("utf-8")
 
+
+class TutorialWebService(object):
+
+    def execute(self, code):
+        code = unicode(code).encode("utf-8") + "\n"
+        try:
+            return run_with_emulated_print(code).decode("utf-8")
+        except Exception, e:
+            return unicode(traceback.format_exc())
+
+#     def execute(self, code):
+#         code = unicode(code).encode("utf-8") + "\n"
+#         try:
+#             return (u"So, you want me to run %r, do you?" % (code,)).decode("utf-8")
+#         except Exception, e:
+#             return unicode(traceback.format_exc())

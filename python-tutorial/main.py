@@ -35,19 +35,12 @@ class CdnProxy(webapp.RequestHandler):
 
 class WebService(webapp.RequestHandler):
 
-    def execute(self, code):
-        code = unicode(code).encode("utf-8") + "\n"
-        try:
-            return tutorial.run_with_emulated_print(code).decode("utf-8")
-#             return tutorial.run_straight_cappython(code).decode("utf-8")
-        except Exception, e:
-            return unicode(traceback.format_exc())
-
     def post(self):
         string = self.request.body.decode("utf-8")
         json = simplejson.loads(string)
         assert not json[u"method"].startswith(u"_"), json[u"method"]
-        method = getattr(self, json[u"method"].encode("ascii"))
+        handler = tutorial.TutorialWebService()
+        method = getattr(handler, json[u"method"].encode("ascii"))
         result = method(*json[u"params"])
         self.response.headers.add_header("Content-Type", 
                                          "application/json; charser=utf-8")

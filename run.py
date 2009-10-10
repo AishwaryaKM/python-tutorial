@@ -114,7 +114,7 @@ def interruptable():
     except: #KeyboardInterrupt, SystemExit, etc.
         pass
 
-def _run_development_server(build_func, dev_appserver):
+def _run_development_server(build_func, dev_appserver, do_refresh=True):
     with mkdtemp() as temp_dir:
         stage_dir = os.path.join(temp_dir, "staging")
         target_dir = os.path.join(temp_dir, "running")
@@ -126,15 +126,17 @@ def _run_development_server(build_func, dev_appserver):
         try:
             with interruptable():
                 while child.poll() is None:
-                    shutil.rmtree(stage_dir)
-                    try:
-                        build_func(stage_dir)
-                    except Exception, e:
-                        print "Build error.  Transient?", str(e)
-                    else:
-                        subprocess.check_call(["rsync", "-r", "-i", "-c",
-                                               stage_dir.rstrip("/") + "/",
-                                               target_dir.rstrip("/") + "/"])
+                    if do_refresh:
+                        shutil.rmtree(stage_dir)
+                        try:
+                            build_func(stage_dir)
+                        except Exception, e:
+                            print "Build error.  Transient?", str(e)
+                        else:
+                            subprocess.check_call(
+                                ["rsync", "-r", "-i", "-c",
+                                 stage_dir.rstrip("/") + "/",
+                                 target_dir.rstrip("/") + "/"])
                     time.sleep(1)
         finally:
             os.kill(child.pid, signal.SIGKILL)
@@ -147,7 +149,8 @@ def run_development_server_python(sdk_path):
 def run_development_server_java(sdk_path):
     _run_development_server(
         lambda a: _build_java(a, sdk_path),
-        ["sh", "-c", 'cd "$1" && ant runserver', "-"])
+        ["sh", "-c", 'cd "$1" && ant runserver', "-"],
+        do_refresh=False)
 
 def deploy_live_python(sdk_path):
     with mkdtemp() as temp_dir:
