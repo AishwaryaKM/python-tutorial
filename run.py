@@ -160,6 +160,16 @@ def deploy_live_python(sdk_path):
                                os.path.join(sdk_path, "appcfg.py"),
                                "update", target_dir])
 
+def deploy_live_java(sdk_path):
+    with mkdtemp() as temp_dir:
+        target_dir = os.path.join(temp_dir, "python-tutorial")
+        _build_java(target_dir, sdk_path)
+        subprocess.check_call(
+            ["sh", "-c", 
+             ('cd "$1" && ant datanucleusenhance && '
+              '"$2"/bin/appcfg.sh update "$1"/war'),
+             "-", target_dir, sdk_path])
+
 def main(prog, argv):
     parser = optparse.OptionParser(__doc__, prog=prog)
     parser.add_option("--sdk", dest="sdk")
@@ -173,7 +183,7 @@ def main(prog, argv):
         parser.error(format("Unexpected: %r", args))
     if options.platform == "java":
         actions = {"dev": run_development_server_java,
-                   "push": deploy_live_python}
+                   "push": deploy_live_java}
         default_sdk = os.path.join(os.path.expanduser("~"), "Desktop",
                                    "appengine-java-sdk")
     elif options.platform == "python":
