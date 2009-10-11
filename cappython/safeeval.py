@@ -16,10 +16,10 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import pypybits.transformer as compiler
-import os
-import types
 import __builtin__
+import os
+import pypybits.transformer as compiler
+import types
 
 import cappython.pycheck as pycheck
 import cappython.varbindings as varbindings
@@ -57,17 +57,19 @@ class Environment(object):
         # Python allows the __builtins__ object to be a dictionary or
         # a module.  We use a module in order to make it read-only to
         # CapPython code.
+        self._bound = {}
         self._module = types.ModuleType("__safe_eval_builtins__")
 
     def bind(self, name, value):
         assert type(name) is str
         assert not name.startswith("_") or pycheck.is_special_attr(name), name
         self._module.__dict__[name] = value
+        self._bound[name] = value
 
     def set_importer(self, func):
         def import_wrapper(name, globals=None, locals=None, fromlist=None):
             return func(name, fromlist)
-        self._module.__dict__["__import__"] = import_wrapper
+        self.bind("__import__", import_wrapper)
 
 
 class Evaluator(object):
@@ -101,7 +103,8 @@ class Evaluator(object):
         assert type(source_code) is str
         assert type(builtins) is Environment
         module = types.ModuleType("__safe_eval_module__")
-        module.__dict__["__builtins__"] = builtins._module
+#         module.__dict__["__builtins__"] = builtins._module
+        module.__dict__.update(builtins._bound)
         tree = compiler.parse(source_code)
         global_vars, bindings = varbindings.annotate(tree)
         log = pycheck.check(tree, bindings)
