@@ -1,5 +1,5 @@
-application: jython-tutorial
-version: 7
+application: python-tutorial
+version: 6
 runtime: python
 api_version: 1
 
