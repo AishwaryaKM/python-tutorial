@@ -96,6 +96,8 @@ def _build_java(target_dir, sdk_path):
                 ".//gae:version", 
                 namespaces=NSMAP)).text = str(app_yaml["version"])
         write_file(appengine_xml_path, etree.tostring(appengine_xml))
+        subprocess.check_call(["ant", "datanucleusenhance"],
+                              cwd=target_dir)
 
 @contextlib.contextmanager
 def mkdtemp(*args, **kwargs):
@@ -149,7 +151,8 @@ def run_development_server_python(sdk_path):
 def run_development_server_java(sdk_path):
     _run_development_server(
         lambda a: _build_java(a, sdk_path),
-        ["sh", "-c", 'cd "$1" && ant runserver', "-"],
+        [os.path.join(sdk_path, "bin", "dev_appserver.sh"), 
+         os.path.join(target_dir, "war")],
         do_refresh=False)
 
 def deploy_live_python(sdk_path):
@@ -165,30 +168,33 @@ def deploy_live_java(sdk_path):
         target_dir = os.path.join(temp_dir, "python-tutorial")
         _build_java(target_dir, sdk_path)
         subprocess.check_call(
-            ["sh", "-c", 
-             ('cd "$1" && ant datanucleusenhance && '
-              '"$2"/bin/appcfg.sh update "$1"/war'),
-             "-", target_dir, sdk_path])
+            [os.path.join(sdk_path, "bin", "appcfg.sh"), 
+             "update", os.path.join(target_dir, "war")])
 
 def main(prog, argv):
     parser = optparse.OptionParser(__doc__, prog=prog)
     parser.add_option("--sdk", dest="sdk")
     parser.add_option("--java", dest="platform", const="java",
                       default="python", action="store_const")
+    parser.add_option("--output-dir", dest="output_dir",
+                      default="python-tutorial-build")
     options, args = parser.parse_args(argv)
     if len(args) == 0:
         parser.error("Missing: ACTION")
     action = args.pop(0)
     if len(args) > 0:
         parser.error(format("Unexpected: %r", args))
+    output_dir = os.path.abspath(options.output_dir)
     if options.platform == "java":
         actions = {"dev": run_development_server_java,
-                   "push": deploy_live_java}
+                   "push": deploy_live_java,
+                   "build": lambda sdk: _build_java(output_dir, sdk)}
         default_sdk = os.path.join(os.path.expanduser("~"), "Desktop",
                                    "appengine-java-sdk")
     elif options.platform == "python":
         actions = {"dev": run_development_server_python,
-                   "push": deploy_live_python}
+                   "push": deploy_live_python,
+                   "build": lambda sdk: _build_python(output_dir, sdk_path)}
         default_sdk = os.path.join(os.path.expanduser("~"), "Desktop",
                                    "google_appengine")
     else:
