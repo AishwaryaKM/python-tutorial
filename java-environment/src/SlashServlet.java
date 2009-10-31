@@ -1,16 +1,27 @@
+import java.io.FileInputStream;
 import java.io.IOException;
-import javax.servlet.http.*;
-import org.python.util.PythonInterpreter;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class SlashServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	throws IOException {
-	PythonInterpreter interp = new PythonInterpreter();
+	resp.setContentType("text/html; charset=utf-8");
 	String index_path = this.getServletContext()
 	    .getRealPath("/static/index.html");
-	interp.set("index_path", index_path);
-	interp.set("resp", resp);
-	interp.exec("resp.setContentType('text/html; charset=utf-8')");
-	interp.exec("resp.getOutputStream().write(open(index_path).read())");
+        FileInputStream in = new FileInputStream(index_path);
+        try
+	    {
+		int c;
+		while ((c = in.read()) != -1)
+		    {
+			resp.getOutputStream().write(c);
+		    }
+	    }
+	finally
+	    {
+		in.close();
+	    }
     }
 }
