@@ -116,7 +116,7 @@ def interruptable():
     except: #KeyboardInterrupt, SystemExit, etc.
         pass
 
-def _run_development_server(build_func, dev_appserver, do_refresh=True):
+def _run_development_server(build_func, dev_appserver_func, do_refresh=True):
     with mkdtemp() as temp_dir:
         stage_dir = os.path.join(temp_dir, "staging")
         target_dir = os.path.join(temp_dir, "running")
@@ -124,7 +124,7 @@ def _run_development_server(build_func, dev_appserver, do_refresh=True):
         subprocess.check_call(["rsync", "-q", "-a", 
                                stage_dir.rstrip("/") + "/",
                                target_dir.rstrip("/") + "/"])
-        child = subprocess.Popen(dev_appserver + [target_dir])
+        child = subprocess.Popen(dev_appserver_func(target_dir))
         try:
             with interruptable():
                 while child.poll() is None:
@@ -146,13 +146,13 @@ def _run_development_server(build_func, dev_appserver, do_refresh=True):
 def run_development_server_python(sdk_path):
     _run_development_server(
         _build_python, 
-        ["python2.5", os.path.join(sdk_path, "dev_appserver.py")])
+        lambda t: ["python2.5", os.path.join(sdk_path, "dev_appserver.py"), t])
 
 def run_development_server_java(sdk_path):
     _run_development_server(
         lambda a: _build_java(a, sdk_path),
-        [os.path.join(sdk_path, "bin", "dev_appserver.sh"), 
-         os.path.join(target_dir, "war")],
+        lambda t: [os.path.join(sdk_path, "bin", "dev_appserver.sh"), 
+                   os.path.join(t, "war")],
         do_refresh=False)
 
 def deploy_live_python(sdk_path):
