@@ -218,6 +218,12 @@ var init = function()
     var execute = function()
     {
 	var code = editor.getCode();
+	var output = document.getElementById("output");
+	clear_element(output);
+	var italics_span = document.createElement("span");
+	italics_span.style.fontStyle = "italic";
+	output.appendChild(italics_span);
+	set_text(italics_span, "Executing, please wait...");
 	ws.execute(code).addCallback(write_out);
     };
     document.getElementById("execute-button").onclick = execute;
