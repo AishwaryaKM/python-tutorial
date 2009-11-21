@@ -176,6 +176,8 @@ def main(prog, argv):
     parser.add_option("--sdk", dest="sdk")
     parser.add_option("--java", dest="platform", const="java",
                       default="python", action="store_const")
+    parser.add_option("--python", dest="platform", const="python",
+                      default="java", action="store_const")
     parser.add_option("--output-dir", dest="output_dir",
                       default="python-tutorial-build")
     options, args = parser.parse_args(argv)
