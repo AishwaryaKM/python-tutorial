@@ -4,7 +4,7 @@ dojo.require("dojo.rpc.JsonService");
 var ws = new dojo.rpc.JsonService({
         "serviceType": "JSON-RPC",
         "serviceURL": "/ws",
-        "timeout": 7200,
+        "timeout": 100000000,
         "methods":[{"name": "execute", "parameters": [{"name": "code"}]},
 		   {"name": "get_constants", "parameters": []}]
 });
